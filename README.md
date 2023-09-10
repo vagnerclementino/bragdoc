@@ -21,7 +21,7 @@ Inspired by insightful articles such as:
 
 We recognized the need for a simple, yet powerful tool to assist individuals in
 tracking and presenting their professional achievements. Bragdoc was born out
-of this need, and its name, "bragdoc," encapsulates its purpose: helping you
+of this need, and its name, "bragdoc", encapsulates its purpose: helping you
 document your accomplishments and create a powerful resource to refer to during
 performance reviews.
 
@@ -29,7 +29,7 @@ performance reviews.
 
 - Create and maintain a comprehensive record of your achievements.
 - Generate professional "Brag Documents" from predefined templates using AI.
-- Organize your accomplishments by categories, tags, or timeframes.
+- Organize your accomplishments by categories, tags, and etc.
 - Easily update and edit your Brag Document as you achieve more milestones.
 - Export your Brag Document to various formats (PDF, Word, Markdown) for different use cases.
 
@@ -44,7 +44,6 @@ To get started with Bragdoc, follow these simple steps:
 3. **Templates**: Explore the available templates and customize them to match your style and preferences.
 
 4. **Export**: Generate your Brag Document and share it with confidence during performance reviews.
-
 
 ## Used Stack
 
@@ -67,11 +66,10 @@ communicate significant project decisions. You can find the ADRs in the
 ## Contribution
 
 We welcome contributions from the community! If you have ideas, bug reports, or
-feature requests, please [open an issue](https://github.com/vagnerclementino/bragdoc/issues) 
+feature requests, please [open an issue](https://github.com/vagnerclementino/bragdoc/issues)
 or submit a pull request.
 
 ## License
 
 This project is licensed under the MIT License - see the
 [LICENSE.md](LICENSE.md) file for details.
-
