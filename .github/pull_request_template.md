@@ -20,7 +20,6 @@ https://github.com/vagnerclementino/bragdoc/issues/<number>
 ## Documentation
 
 - [ ] Did you update the readme of the project?
-- [ ] Did you update the backstage documentation of the project?
 - [ ] Did you add/update the swagger documentation?
 - [ ] Did you add/update the postman documentation?
 
