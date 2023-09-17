@@ -31,3 +31,6 @@ go.work
 
 #binary
 bragdoc
+
+#Test
+coverage.txt
