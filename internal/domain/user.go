@@ -2,6 +2,8 @@ package domain
 
 import (
 	"errors"
+	"fmt"
+	"net/mail"
 
 	"github.com/google/uuid"
 )
@@ -28,6 +30,10 @@ func (u *User) Validate() error {
 
 	if u.Email == "" {
 		return errors.New("User.Email: the user's email cannot be empty")
+	}
+
+	if _, err := mail.ParseAddress(u.Email); err != nil {
+		return fmt.Errorf("User.Email: the user's email %s is not valid", u.Email)
 	}
 
 	return nil
