@@ -22,6 +22,10 @@ func (u *User) Validate() error {
 		return errors.New("User.Name: the user's name cannot be empty")
 	}
 
+	if len(u.Name) <= 3 {
+		return errors.New("User.Name: the user's name has an unexpected size")
+	}
+
 	if u.Email == "" {
 		return errors.New("User.Email: the user's email cannot be empty")
 	}
