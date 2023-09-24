@@ -6,10 +6,10 @@ on:
       - main
   pull_request:
 
-concurrency: pipeline-quality
+concurrency: quality
 
 jobs:
-  pipeline-quality:
+  quality:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
