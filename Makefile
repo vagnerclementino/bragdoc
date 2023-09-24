@@ -15,8 +15,7 @@ test-race: ##@quality validate race condition
 
 .PHONY: lint
 lint: ##@quality check coding style
-	echo $(GOPATH)
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH)/bin v1.50.1
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH)/bin
 	golangci-lint run
 
 .PHONY: run
