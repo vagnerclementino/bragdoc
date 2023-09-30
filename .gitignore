@@ -34,3 +34,7 @@ bragdoc
 
 #Test
 coverage.txt
+
+.idea/
+
+.DS_Store

@@ -1,7 +1,7 @@
 /*
 Copyright © 2023 Vagner Clementino vagner.clemetino@gmail.com
 */
-package cmd
+package handler
 
 import (
 	"fmt"

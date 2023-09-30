@@ -1,9 +1,7 @@
 package main
 
-import (
-	"github.com/vagnerclementino/bragdoc/internal/cmd"
-)
+import "github.com/vagnerclementino/bragdoc/internal/handler"
 
 func main() {
-	cmd.Execute()
+	handler.Execute()
 }
