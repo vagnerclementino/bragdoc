@@ -13,7 +13,10 @@ type cmdHandler struct {
 }
 
 func (h *cmdHandler) CmdRegister(cmd string) {
-	h.cmds = append(h.cmds, cmd)
+	switch cmd {
+	case "version":
+		h.root.AddCommand(versionCmd)
+	}
 }
 
 func (h *cmdHandler) Execute() error {

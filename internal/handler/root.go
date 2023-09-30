@@ -11,9 +11,7 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "bragdoc",
 	Short: "A brief description of your application",
-	Long: `Bragdoc is a powerful command-line interface (CLI) tool designed to help individuals build their 
-	own "Brag Documents." The idea behind this tool stems from a growing recognition of the importance of self-promotion
-	and professional self-awareness in today's competitive job market`,
+	Long:  `Bragdoc is a powerful command-line interface (CLI) tool designed to help individuals build their own "Brag Documents."`,
 }
 
 func init() {
