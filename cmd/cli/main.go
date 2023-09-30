@@ -1,7 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"github.com/vagnerclementino/bragdoc/internal/cmd"
+)
 
 func main() {
-	fmt.Println("bragdoc")
+	cmd.Execute()
 }
