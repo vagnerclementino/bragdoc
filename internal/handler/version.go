@@ -21,7 +21,7 @@ const defaultWidthTable = 8
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: `ℹ️  This command is used to display the current version of the application`,
+	Short: `Display the current version and build of the bradoc`,
 	Long:  `When executed, it will provide you with information about the version number of the application you're running. 🚀`,
 	Run: func(cmd *cobra.Command, args []string) {
 		writer := new(tabwriter.Writer)
