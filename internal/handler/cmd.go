@@ -1,9 +1,13 @@
 package handler
 
-import "github.com/spf13/cobra"
+import (
+	"fmt"
+
+	"github.com/spf13/cobra"
+)
 
 type CmdHandler interface {
-	CmdRegister(cmd string)
+	Register(cmd string) error
 	Execute() error
 }
 
@@ -12,11 +16,16 @@ type cmdHandler struct {
 	cmds []string
 }
 
-func (h *cmdHandler) CmdRegister(cmd string) {
+func (h *cmdHandler) Register(cmd string) error {
+	var err error
+
 	switch cmd {
 	case "version":
 		h.root.AddCommand(versionCmd)
+	default:
+		err = fmt.Errorf("the command '%s' cannot be registered", cmd)
 	}
+	return err
 }
 
 func (h *cmdHandler) Execute() error {
