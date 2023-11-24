@@ -13,14 +13,14 @@ func TestDocument_Validate(t *testing.T) {
 		scenario func(t *testing.T)
 	}{
 		{
-			name: "test name",
+			name: "should returns a error if a document is empty",
 			scenario: func(t *testing.T) {
 
 				d := Document{}
 
 				err := d.Validate()
 
-				assert.EqualError(t, err, "Document.Brags: the document's brag list cannot be empty. Please provide at least one brag.")
+				assert.EqualError(t, err, "Document.Brags: the document's brag list cannot be empty. Please provide at least one brag")
 			},
 		},
 	}

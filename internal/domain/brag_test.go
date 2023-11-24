@@ -28,7 +28,7 @@ func TestBrag_validate(t *testing.T) {
 					Description: "hi",
 				}
 				err := b.Validate()
-				assert.EqualError(t, err, "Brag.Description: the brag's description is very short. Please provide a text with a minimum size of 10.")
+				assert.EqualError(t, err, "Brag.Description: the brag's description is very short. Please provide a text with a minimum size of 10")
 			},
 		},
 		{
@@ -41,7 +41,7 @@ func TestBrag_validate(t *testing.T) {
 					Details:     &description,
 				}
 				err := b.Validate()
-				assert.EqualError(t, err, "Brag.Details: the brag's details is very short. Please provide a text with a minimum size of 20.")
+				assert.EqualError(t, err, "Brag.Details: the brag's details is very short. Please provide a text with a minimum size of 20")
 
 			},
 		},
@@ -49,7 +49,7 @@ func TestBrag_validate(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			tpope/vim - eunuch
+			test.scenario(t)
 		})
 	}
 }
