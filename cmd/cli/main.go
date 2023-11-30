@@ -8,7 +8,9 @@ import (
 
 func main() {
 	cmdHandler := handler.NewCmdHandler()
-	cmdHandler.Register("version")
+	if err := cmdHandler.Register("version"); err != nil {
+		os.Exit(1)
+	}
 	if err := cmdHandler.Execute(); err != nil {
 		os.Exit(1)
 	}
