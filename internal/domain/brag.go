@@ -16,7 +16,7 @@ type Brag struct {
 	UpdatedAt   *time.Time
 }
 
-func (b *Brag) Validate() error {
+func (b Brag) Validate() error {
 
 	if strings.TrimSpace(b.Description) == "" {
 		return errors.New("Brag.Description: the brag's description cannot be empty")
@@ -32,4 +32,20 @@ func (b *Brag) Validate() error {
 	}
 
 	return nil
+}
+
+func (b Brag) String() string {
+	createdAtStr := b.CreatedAt.Format(time.RFC3339)
+	updatedAtStr := ""
+	if b.UpdatedAt != nil {
+		updatedAtStr = b.UpdatedAt.Format(time.RFC3339)
+	}
+
+	detailsStr := ""
+	if b.Details != nil {
+		detailsStr = *b.Details
+	}
+
+	return fmt.Sprintf("ID: %s\nDescription: %s\nDetails: %s\nCreated At: %s\nUpdated At: %s\n",
+		b.ID, b.Description, detailsStr, createdAtStr, updatedAtStr)
 }

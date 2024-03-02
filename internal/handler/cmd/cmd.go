@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-
 	"github.com/spf13/cobra"
 	"github.com/vagnerclementino/bragdoc/internal/handler"
 )
@@ -24,7 +23,6 @@ func NewCli(cmds []string) (handler.Handler, error) {
 			return nil, err
 		}
 	}
-
 	return cli, nil
 }
 
@@ -34,6 +32,12 @@ func (h *cmdHandler) register(cmd string) error {
 	switch cmd {
 	case "version":
 		h.root.AddCommand(versionCmd)
+	case "init":
+		h.root.AddCommand(initCmd)
+	case "brag":
+		h.root.AddCommand(bragCmd)
+	case "doc":
+		h.root.AddCommand(docCmd)
 	default:
 		err = fmt.Errorf("the command '%s' cannot be registered", cmd)
 	}
