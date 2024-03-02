@@ -1,7 +1,7 @@
 /*
 Copyright © 2023 Vagner Clementino vagner.clementino@gmail.com
 */
-package handler
+package cmd
 
 import (
 	"github.com/spf13/cobra"

@@ -1,17 +1,19 @@
 package main
 
 import (
+	"github.com/vagnerclementino/bragdoc/internal/handler/cmd"
 	"os"
-
-	"github.com/vagnerclementino/bragdoc/internal/handler"
 )
 
 func main() {
-	cmdHandler := handler.NewCmdHandler()
-	if err := cmdHandler.Register("version"); err != nil {
+	cli, err := cmd.NewCli([]string{
+		"version",
+	})
+	if err != nil {
 		os.Exit(1)
 	}
-	if err := cmdHandler.Execute(); err != nil {
+
+	if err := cli.Start(); err != nil {
 		os.Exit(1)
 	}
 }

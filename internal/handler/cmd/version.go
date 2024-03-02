@@ -1,7 +1,4 @@
-/*
-Copyright © 2023 Vagner Clementino vagner.clemetino@gmail.com
-*/
-package handler
+package cmd
 
 import (
 	"fmt"
@@ -35,9 +32,12 @@ var versionCmd = &cobra.Command{
 			}
 		}(writer)
 
-		fmt.Fprintln(writer, "Version:\t", Version)
-		fmt.Fprintln(writer, "Build:\t", Build)
-
+		if _, err := fmt.Fprintln(writer, "Version:\t", Version); err != nil {
+			return
+		}
+		if _, err := fmt.Fprintln(writer, "Build:\t", Build); err != nil {
+			return
+		}
 	},
 }
 

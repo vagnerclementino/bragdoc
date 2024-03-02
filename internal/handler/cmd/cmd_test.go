@@ -1,4 +1,4 @@
-package handler
+package cmd
 
 import (
 	"testing"
@@ -14,8 +14,7 @@ func TestCmdHandler_register(t *testing.T) {
 		{
 			name: "should returns an error to a unknown command",
 			scenario: func(t *testing.T) {
-				handler := NewCmdHandler()
-				err := handler.Register("xyz")
+				_, err := NewCli([]string{"xyz"})
 				assert.EqualError(t, err, "the command 'xyz' cannot be registered")
 
 			},
@@ -23,8 +22,7 @@ func TestCmdHandler_register(t *testing.T) {
 		{
 			name: "should returns no  error with a valid command",
 			scenario: func(t *testing.T) {
-				handler := NewCmdHandler()
-				err := handler.Register("version")
+				_, err := NewCli([]string{"version"})
 				assert.NoError(t, err)
 			},
 		},
