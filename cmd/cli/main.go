@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/vagnerclementino/bragdoc/internal/handler/cmd"
 	"os"
+
+	"github.com/vagnerclementino/bragdoc/internal/handler/cmd"
 )
 
 func main() {
