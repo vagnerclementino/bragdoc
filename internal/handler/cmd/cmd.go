@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+
 	"github.com/spf13/cobra"
 	"github.com/vagnerclementino/bragdoc/internal/handler"
 )
@@ -28,7 +29,6 @@ func NewCli(cmds []string) (handler.Handler, error) {
 
 func (h *cmdHandler) register(cmd string) error {
 	var err error
-
 	switch cmd {
 	case "version":
 		h.root.AddCommand(versionCmd)

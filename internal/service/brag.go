@@ -2,10 +2,10 @@ package service
 
 import (
 	"database/sql"
-	"fmt"
+	"log"
+
 	"github.com/vagnerclementino/bragdoc/internal/domain"
 	"github.com/vagnerclementino/bragdoc/internal/usercase"
-	"log"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -23,22 +23,23 @@ func (s *bragService) AddBrag(brag *domain.Brag) error {
 		}
 	}(s.db)
 
-	// Insert the Brag instance into the database
 	insertQuery := `
 		INSERT INTO brags (id, description, details, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?);
-	`
+		VALUES (?, ?, ?, ?, ?);`
 
 	_, err := s.db.Exec(insertQuery, brag.ID, brag.Description, brag.Details, brag.CreatedAt, brag.UpdatedAt)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("Brag instance saved to the database.")
 	return nil
 }
 func NewBragService() usercase.BragUserCase {
 	db, err := sql.Open("sqlite3", "brags.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Create the Brags table if it doesn't exist
 	createTable := `
 		CREATE TABLE IF NOT EXISTS brags (
@@ -47,8 +48,7 @@ func NewBragService() usercase.BragUserCase {
 			details TEXT,
 			created_at DATETIME,
 			updated_at DATETIME
-		);
-	`
+		);`
 	_, err = db.Exec(createTable)
 
 	if err != nil {

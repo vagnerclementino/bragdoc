@@ -2,11 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/vagnerclementino/bragdoc/internal/domain"
 	"github.com/vagnerclementino/bragdoc/internal/service"
 	"github.com/vagnerclementino/bragdoc/internal/usercase"
-	"time"
 
 	"github.com/spf13/cobra"
 )
