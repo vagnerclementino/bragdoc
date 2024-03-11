@@ -2,7 +2,10 @@ package service
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 
 	"github.com/vagnerclementino/bragdoc/internal/domain"
 	"github.com/vagnerclementino/bragdoc/internal/usercase"
@@ -35,12 +38,23 @@ func (s *bragService) AddBrag(brag *domain.Brag) error {
 	return nil
 }
 func NewBragService() usercase.BragUserCase {
-	db, err := sql.Open("sqlite3", "brags.db")
+	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Create the Brags table if it doesn't exist
+	hiddenFolderPath := filepath.Join(homeDir, ".bragdoc")
+
+	err = os.MkdirAll(hiddenFolderPath, 0700)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	db, err := sql.Open("sqlite3", fmt.Sprintf("%s/brags.db", hiddenFolderPath))
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	createTable := `
 		CREATE TABLE IF NOT EXISTS brags (
 			id TEXT PRIMARY KEY,
