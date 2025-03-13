@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+
 	"github.com/chaisql/chai"
 	"github.com/vagnerclementino/bragdoc/internal/domain"
 )
@@ -28,7 +29,7 @@ func (r *bragRepo) Create(ctx context.Context, brag *domain.Brag) error {
 
 func (r *bragRepo) FindAll(ctx context.Context) ([]domain.Brag, error) {
 	var brags []domain.Brag
-	
+
 	res, err := r.db.Query("SELECT * FROM brags")
 	if err != nil {
 		return nil, err

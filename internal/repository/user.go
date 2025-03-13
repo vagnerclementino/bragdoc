@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+
 	"github.com/chaisql/chai"
 	"github.com/vagnerclementino/bragdoc/internal/domain"
 )
@@ -28,7 +29,7 @@ func (r *userRepo) Create(ctx context.Context, user *domain.User) error {
 
 func (r *userRepo) Find(ctx context.Context) (*domain.User, error) {
 	var user domain.User
-	
+
 	res, err := r.db.Query("SELECT * FROM users LIMIT 1")
 	if err != nil {
 		return nil, err
