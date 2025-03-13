@@ -38,3 +38,4 @@ coverage.txt
 .idea/
 
 .DS_Store
+.aider*

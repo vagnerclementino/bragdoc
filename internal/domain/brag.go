@@ -5,15 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 )
 
 type Brag struct {
 	ID          string
 	Description string
 	Details     *string
-	CreatedAt   time.Time
-	UpdatedAt   *time.Time
+	CreatedAt   int64  // Unix timestamp
+	UpdatedAt   *int64 // Unix timestamp pointer
 }
 
 func (b *Brag) Validate() error {
