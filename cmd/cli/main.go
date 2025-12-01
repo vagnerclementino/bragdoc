@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/vagnerclementino/bragdoc/cmd/cli/commands"
 	"github.com/vagnerclementino/bragdoc/internal/database"
@@ -11,15 +12,23 @@ import (
 )
 
 func main() {
-	// Setup database
-	db, err := database.SetupDatabase()
+	// Setup database path
+	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		log.Fatalf("failed to setup database: %v", err)
+		log.Fatalf("failed to get home directory: %v", err)
 	}
+	dbPath := filepath.Join(homeDir, ".bragdoc", "bragdoc.db")
+
+	// Open database connection (without running migrations)
+	db, err := database.New(dbPath)
+	if err != nil {
+		log.Fatalf("failed to open database: %v", err)
+	}
+	defer db.Close()
 
 	// Initialize repositories
-	bragRepo := repository.NewBragRepository(db)
-	userRepo := repository.NewUserRepository(db)
+	bragRepo := repository.NewBragRepository(db.Conn())
+	userRepo := repository.NewUserRepository(db.Conn())
 
 	// Initialize services
 	bragService := service.NewBragService(bragRepo)

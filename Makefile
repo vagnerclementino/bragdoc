@@ -5,6 +5,10 @@ include Makefile.docs
 .SILENT:
 .DEFAULT_GOAL := help
 
+.PHONY: generate
+generate: ##@application generate code from SQLC
+	go run github.com/sqlc-dev/sqlc/cmd/sqlc@latest generate
+
 .PHONY: test
 test: clean ##@quality run tests with coverage
 	go test ./... -v -coverprofile=coverage.txt -covermode=atomic
@@ -23,14 +27,18 @@ run: build ##@application run application
 	./$(BINARY_NAME)
 
 .PHONY: clean
-clean: ##@application clean binary
-	if [ -f $(BINARY_NAME) ] ; then rm $(BINARY_NAME) ; fi
-	rm -f $(BINARY_NAME).zip
-	rm -f $(BINARY_NAME).tar.gz
+clean: ##@application clean binary and temporary files
+	@echo "🧹 Cleaning up..."
+	@rm -f $(BINARY_NAME)
+	@rm -f $(BINARY_NAME).zip
+	@rm -f $(BINARY_NAME).tar.gz
+	@rm -f coverage.txt
+	@rm -rf dist/
+	@echo "✅ Clean complete"
 
 .PHONY: build
-build: clean ##@application build application
-	env GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o $(BINARY_NAME) -ldflags $(LDFLAGS) cmd/cli/main.go
+build: clean generate ##@application build application
+	env CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o $(BINARY_NAME) -ldflags $(LDFLAGS) cmd/cli/main.go
 
 .PHONY: fmt
 fmt: ##@quality run go fmt
