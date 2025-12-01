@@ -60,33 +60,33 @@ func TestUser_Validate(t *testing.T) {
 			errorMsg:    "invalid email address",
 		},
 		{
-			name: "should return error when language code is invalid",
+			name: "should return error when locale is invalid",
 			user: &User{
-				ID:       1,
-				Name:     "John Doe",
-				Email:    "john@test.com",
-				Language: "english",
+				ID:     1,
+				Name:   "John Doe",
+				Email:  "john@test.com",
+				Locale: Locale("de-DE"),
 			},
 			expectError: true,
-			errorMsg:    "language must be a 2-letter ISO 639-1 code",
+			errorMsg:    "unsupported locale",
 		},
 		{
 			name: "should pass validation with valid data",
 			user: &User{
-				ID:       1,
-				Name:     "John Doe",
-				Email:    "john@test.com",
-				Language: "en",
+				ID:     1,
+				Name:   "John Doe",
+				Email:  "john@test.com",
+				Locale: LocaleEnglishUS,
 			},
 			expectError: false,
 		},
 		{
-			name: "should default to 'en' when language is empty",
+			name: "should default to 'en-US' when locale is empty",
 			user: &User{
-				ID:       1,
-				Name:     "John Doe",
-				Email:    "john@test.com",
-				Language: "",
+				ID:     1,
+				Name:   "John Doe",
+				Email:  "john@test.com",
+				Locale: "",
 			},
 			expectError: false,
 		},
@@ -100,9 +100,9 @@ func TestUser_Validate(t *testing.T) {
 				assert.Contains(t, err.Error(), tt.errorMsg)
 			} else {
 				assert.NoError(t, err)
-				if tt.user != nil && tt.user.Language == "" {
-					// After validation, empty language should be set to "en"
-					assert.Equal(t, "en", tt.user.Language)
+				if tt.user != nil && tt.user.Locale == "" {
+					// After validation, empty locale should be set to "en-US"
+					assert.Equal(t, LocaleEnglishUS, tt.user.Locale)
 				}
 			}
 		})

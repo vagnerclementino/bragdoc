@@ -8,13 +8,13 @@ SELECT * FROM users WHERE email = ? LIMIT 1;
 SELECT * FROM users ORDER BY created_at DESC;
 
 -- name: CreateUser :one
-INSERT INTO users (name, email, job_title, company, language, created_at)
+INSERT INTO users (name, email, job_title, company, locale, created_at)
 VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
 RETURNING *;
 
 -- name: UpdateUser :one
 UPDATE users 
-SET name = ?, email = ?, job_title = ?, company = ?, language = ?, updated_at = CURRENT_TIMESTAMP
+SET name = ?, email = ?, job_title = ?, company = ?, locale = ?, updated_at = CURRENT_TIMESTAMP
 WHERE id = ?
 RETURNING *;
 

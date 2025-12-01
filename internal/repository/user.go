@@ -77,7 +77,7 @@ func (r *userRepo) Insert(ctx context.Context, user *domain.User) (*domain.User,
 		Email:    user.Email,
 		JobTitle: jobTitle,
 		Company:  company,
-		Language: user.Language,
+		Locale:   user.Locale.String(),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
@@ -95,7 +95,7 @@ func (r *userRepo) Update(ctx context.Context, user *domain.User) (*domain.User,
 		Email:    user.Email,
 		JobTitle: jobTitle,
 		Company:  company,
-		Language: user.Language,
+		Locale:   user.Locale.String(),
 		ID:       user.ID,
 	})
 	if err != nil {
@@ -114,11 +114,13 @@ func (r *userRepo) Delete(ctx context.Context, id int64) error {
 
 // toDomainUser converts a database user to a domain user
 func (r *userRepo) toDomainUser(dbUser *queries.User) *domain.User {
+	locale, _ := domain.ParseLocale(dbUser.Locale)
+	
 	user := &domain.User{
-		ID:       dbUser.ID,
-		Name:     dbUser.Name,
-		Email:    dbUser.Email,
-		Language: dbUser.Language,
+		ID:     dbUser.ID,
+		Name:   dbUser.Name,
+		Email:  dbUser.Email,
+		Locale: locale,
 	}
 
 	if dbUser.JobTitle.Valid {

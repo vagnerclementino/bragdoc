@@ -197,3 +197,12 @@ func SetupDatabase(dbPath string) (*DB, error) {
 
 	return db, nil
 }
+
+// NewNullString creates a sql.NullString from a string
+// Returns a valid NullString if the string is not empty, otherwise returns an invalid NullString
+func NewNullString(s string) sql.NullString {
+	if s == "" {
+		return sql.NullString{Valid: false}
+	}
+	return sql.NullString{String: s, Valid: true}
+}

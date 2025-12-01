@@ -88,9 +88,9 @@ func TestTransaction(t *testing.T) {
 		err := db.Transaction(ctx, func(q *queries.Queries) error {
 			// Create a user within transaction
 			_, err := q.CreateUser(ctx, queries.CreateUserParams{
-				Name:     "Test User",
-				Email:    "test@example.com",
-				Language: "en",
+				Name:   "Test User",
+				Email:  "test@example.com",
+				Locale: "en-US",
 			})
 			return err
 		})
@@ -112,9 +112,9 @@ func TestTransaction(t *testing.T) {
 		// Attempt transaction that will fail
 		err = db.Transaction(ctx, func(q *queries.Queries) error {
 			_, err := q.CreateUser(ctx, queries.CreateUserParams{
-				Name:     "Another User",
-				Email:    "another@example.com",
-				Language: "en",
+				Name:   "Another User",
+				Email:  "another@example.com",
+				Locale: "en-US",
 			})
 			if err != nil {
 				return err

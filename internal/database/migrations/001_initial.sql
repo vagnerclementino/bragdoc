@@ -7,7 +7,7 @@ CREATE TABLE users (
     email TEXT UNIQUE NOT NULL,
     job_title TEXT,
     company TEXT,
-    language TEXT NOT NULL DEFAULT 'en',
+    locale TEXT NOT NULL DEFAULT 'en-US', -- Locale format: language-COUNTRY (e.g., en-US, pt-BR, pt-PT)
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME
 );

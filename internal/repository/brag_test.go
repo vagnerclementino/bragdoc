@@ -23,9 +23,9 @@ func createTestUser(t *testing.T, db *database.DB) int64 {
 	ctx := context.Background()
 	userRepo := NewUserRepository(db.Conn())
 	user, err := userRepo.Insert(ctx, &domain.User{
-		Name:     "Test User",
-		Email:    "test@example.com",
-		Language: "en",
+		Name:   "Test User",
+		Email:  "test@example.com",
+		Locale: "en-US",
 	})
 	require.NoError(t, err)
 	return user.ID

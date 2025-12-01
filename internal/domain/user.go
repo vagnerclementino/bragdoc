@@ -15,7 +15,7 @@ type User struct {
 	Email     string
 	JobTitle  string
 	Company   string
-	Language  string // ISO 639-1 code (en, pt, es, fr, etc.)
+	Locale    Locale // Locale in format language-COUNTRY (e.g., en-US, pt-BR, pt-PT)
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -49,14 +49,14 @@ func (u *User) Validate() error {
 		return fmt.Errorf("invalid email address: %s", u.Email)
 	}
 
-	// Validate language code if provided
-	if u.Language != "" {
-		u.Language = strings.ToLower(strings.TrimSpace(u.Language))
-		if len(u.Language) != 2 {
-			return fmt.Errorf("language must be a 2-letter ISO 639-1 code, got: %s", u.Language)
+	// Validate locale if provided
+	if u.Locale != "" {
+		if !u.Locale.IsValid() {
+			return fmt.Errorf("unsupported locale: %s (supported: %s)", 
+				u.Locale, SupportedLocalesString())
 		}
 	} else {
-		u.Language = "en" // Default to English
+		u.Locale = LocaleEnglishUS // Default to en-US
 	}
 
 	return nil

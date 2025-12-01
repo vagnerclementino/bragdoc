@@ -2,72 +2,123 @@ package commands
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
-	"os"
-	"path/filepath"
 
 	"github.com/spf13/cobra"
+	"github.com/vagnerclementino/bragdoc/config"
 	"github.com/vagnerclementino/bragdoc/internal/database"
+	"github.com/vagnerclementino/bragdoc/internal/database/queries"
 )
 
 func NewInitCmd() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "init",
 		Short: "Initialize Bragdoc configuration and database",
 		Long:  `Initialize Bragdoc by creating the configuration directory and setting up the database with migrations`,
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := runInit(); err != nil {
-				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-				os.Exit(1)
-			}
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runInit(cmd.Context(), cmd)
 		},
 	}
+
+	// Required flags
+	cmd.Flags().StringP("name", "n", "", "Your full name (required)")
+	cmd.Flags().StringP("email", "e", "", "Your email (required)")
+	cmd.MarkFlagRequired("name")
+	cmd.MarkFlagRequired("email")
+
+	// Optional flags
+	cmd.Flags().StringP("job-title", "j", "", "Your job title (optional)")
+	cmd.Flags().StringP("company", "c", "", "Your company (optional)")
+	cmd.Flags().StringP("locale", "l", "en-US", "Locale (language-COUNTRY): en-US or pt-BR")
+
+	return cmd
 }
 
-func runInit() error {
+func runInit(ctx context.Context, cmd *cobra.Command) error {
 	fmt.Println("🚀 Initializing Bragdoc...")
 
-	// Get home directory
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return fmt.Errorf("failed to get home directory: %w", err)
-	}
+	// Create config manager
+	configManager := config.NewManager()
 
-	// Create .bragdoc directory
-	bragdocDir := filepath.Join(homeDir, ".bragdoc")
-	if err := os.MkdirAll(bragdocDir, 0755); err != nil {
-		return fmt.Errorf("failed to create .bragdoc directory: %w", err)
-	}
-
-	// Database path
-	dbPath := filepath.Join(bragdocDir, "bragdoc.db")
-
-	// Check if database already exists
-	if _, err := os.Stat(dbPath); err == nil {
+	// Check if already initialized
+	if configManager.IsInitialized() {
 		fmt.Println("⚠️  Bragdoc is already initialized!")
-		fmt.Printf("📁 Configuration directory: %s\n", bragdocDir)
-		fmt.Printf("🗄️  Database: %s\n", dbPath)
+		fmt.Printf("📁 Configuration: %s\n", configManager.GetConfigPath())
+		fmt.Printf("🗄️  Database: %s\n", configManager.GetDatabasePath())
 		return nil
 	}
 
-	// Create database and run migrations
+	// Get user information from flags
+	name, _ := cmd.Flags().GetString("name")
+	email, _ := cmd.Flags().GetString("email")
+	jobTitle, _ := cmd.Flags().GetString("job-title")
+	company, _ := cmd.Flags().GetString("company")
+	locale, _ := cmd.Flags().GetString("locale")
+
+	// Validate locale before proceeding
+	if locale != "en-US" && locale != "pt-BR" {
+		return fmt.Errorf("invalid locale: %s (supported: en-US, pt-BR)", locale)
+	}
+
+	user := config.UserConfig{
+		Name:     name,
+		Email:    email,
+		JobTitle: jobTitle,
+		Company:  company,
+		Locale:   locale,
+	}
+
+	// Generate default configuration
+	defaultConfig := configManager.GetDefaultConfig(user)
+
+	// Create configuration file (YAML only in v1)
+	if err := configManager.Initialize(ctx, defaultConfig, config.FormatYAML); err != nil {
+		return fmt.Errorf("failed to create config: %w", err)
+	}
+
+	// Setup database
+	dbPath := configManager.GetDatabasePath()
 	db, err := database.New(dbPath)
 	if err != nil {
 		return fmt.Errorf("failed to create database: %w", err)
 	}
 	defer db.Close()
 
-	// Run migrations (silently)
-	if err := db.Migrate(context.Background()); err != nil {
+	// Run migrations
+	if err := db.Migrate(ctx); err != nil {
 		return fmt.Errorf("failed to setup database: %w", err)
 	}
 
+	// Create user in database
+	q := queries.New(db.Conn())
+	createdUser, err := q.CreateUser(ctx, queries.CreateUserParams{
+		Name:     name,
+		Email:    email,
+		JobTitle: newNullString(jobTitle),
+		Company:  newNullString(company),
+		Locale:   locale,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create user: %w", err)
+	}
+
 	fmt.Println("✅ Bragdoc initialized successfully!")
-	fmt.Printf("📁 Configuration directory: %s\n", bragdocDir)
+	fmt.Printf("📁 Configuration: %s\n", configManager.GetConfigPath())
 	fmt.Printf("🗄️  Database: %s\n", dbPath)
+	fmt.Printf("👤 User created: %s (ID: %d)\n", createdUser.Name, createdUser.ID)
 	fmt.Println("\n💡 Next steps:")
 	fmt.Println("   - Use 'bragdoc brag add' to create your first brag")
 	fmt.Println("   - Use 'bragdoc brag list' to view your brags")
 
 	return nil
+}
+
+// newNullString creates a sql.NullString from a string
+// Returns a valid NullString if the string is not empty, otherwise returns an invalid NullString
+func newNullString(s string) sql.NullString {
+	if s == "" {
+		return sql.NullString{Valid: false}
+	}
+	return sql.NullString{String: s, Valid: true}
 }

@@ -20,10 +20,18 @@ func NewUserService(repo repository.UserRepository) *UserService {
 
 // Create creates a new user with validation
 func (s *UserService) Create(ctx context.Context, user *domain.User) (*domain.User, error) {
+	// Validate user data
 	if err := user.Validate(); err != nil {
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
+	// Check if email already exists
+	existing, err := s.repo.SelectByEmail(ctx, user.Email)
+	if err == nil && existing != nil {
+		return nil, fmt.Errorf("user with email %s already exists", user.Email)
+	}
+
+	// Create user
 	created, err := s.repo.Insert(ctx, user)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)

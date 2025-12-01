@@ -36,7 +36,7 @@ type User struct {
 	Email     string         `db:"email" json:"email"`
 	JobTitle  sql.NullString `db:"job_title" json:"job_title"`
 	Company   sql.NullString `db:"company" json:"company"`
-	Language  string         `db:"language" json:"language"`
+	Locale    string         `db:"locale" json:"locale"`
 	CreatedAt sql.NullTime   `db:"created_at" json:"created_at"`
 	UpdatedAt sql.NullTime   `db:"updated_at" json:"updated_at"`
 }

@@ -57,7 +57,9 @@ quality:test test-race fmt vet imports lint ##@quality run all quality targets
 
 .PHONY: install
 install: build ##@application install local version
-	mv $(BINARY_NAME) /usr/local/bin/$(BINARY_NAME)
+	@echo "📦 Installing $(BINARY_NAME) to /usr/local/bin/..."
+	sudo mv $(BINARY_NAME) /usr/local/bin/$(BINARY_NAME)
+	@echo "✅ Installation complete! Run 'bragdoc --help' to get started."
 
 .PHONY: tidy
 tidy: ##@helper  ensures that the go.mod file matches the source code in the module

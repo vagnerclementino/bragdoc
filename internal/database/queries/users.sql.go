@@ -11,9 +11,9 @@ import (
 )
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (name, email, job_title, company, language, created_at)
+INSERT INTO users (name, email, job_title, company, locale, created_at)
 VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-RETURNING id, name, email, job_title, company, language, created_at, updated_at
+RETURNING id, name, email, job_title, company, locale, created_at, updated_at
 `
 
 type CreateUserParams struct {
@@ -21,7 +21,7 @@ type CreateUserParams struct {
 	Email    string         `db:"email" json:"email"`
 	JobTitle sql.NullString `db:"job_title" json:"job_title"`
 	Company  sql.NullString `db:"company" json:"company"`
-	Language string         `db:"language" json:"language"`
+	Locale   string         `db:"locale" json:"locale"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -30,7 +30,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		arg.Email,
 		arg.JobTitle,
 		arg.Company,
-		arg.Language,
+		arg.Locale,
 	)
 	var i User
 	err := row.Scan(
@@ -39,7 +39,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Email,
 		&i.JobTitle,
 		&i.Company,
-		&i.Language,
+		&i.Locale,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -56,7 +56,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id int64) error {
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, name, email, job_title, company, language, created_at, updated_at FROM users WHERE id = ? LIMIT 1
+SELECT id, name, email, job_title, company, locale, created_at, updated_at FROM users WHERE id = ? LIMIT 1
 `
 
 func (q *Queries) GetUser(ctx context.Context, id int64) (User, error) {
@@ -68,7 +68,7 @@ func (q *Queries) GetUser(ctx context.Context, id int64) (User, error) {
 		&i.Email,
 		&i.JobTitle,
 		&i.Company,
-		&i.Language,
+		&i.Locale,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -76,7 +76,7 @@ func (q *Queries) GetUser(ctx context.Context, id int64) (User, error) {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, name, email, job_title, company, language, created_at, updated_at FROM users WHERE email = ? LIMIT 1
+SELECT id, name, email, job_title, company, locale, created_at, updated_at FROM users WHERE email = ? LIMIT 1
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
@@ -88,7 +88,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.Email,
 		&i.JobTitle,
 		&i.Company,
-		&i.Language,
+		&i.Locale,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -96,7 +96,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, name, email, job_title, company, language, created_at, updated_at FROM users ORDER BY created_at DESC
+SELECT id, name, email, job_title, company, locale, created_at, updated_at FROM users ORDER BY created_at DESC
 `
 
 func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
@@ -114,7 +114,7 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 			&i.Email,
 			&i.JobTitle,
 			&i.Company,
-			&i.Language,
+			&i.Locale,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -133,9 +133,9 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 
 const updateUser = `-- name: UpdateUser :one
 UPDATE users 
-SET name = ?, email = ?, job_title = ?, company = ?, language = ?, updated_at = CURRENT_TIMESTAMP
+SET name = ?, email = ?, job_title = ?, company = ?, locale = ?, updated_at = CURRENT_TIMESTAMP
 WHERE id = ?
-RETURNING id, name, email, job_title, company, language, created_at, updated_at
+RETURNING id, name, email, job_title, company, locale, created_at, updated_at
 `
 
 type UpdateUserParams struct {
@@ -143,7 +143,7 @@ type UpdateUserParams struct {
 	Email    string         `db:"email" json:"email"`
 	JobTitle sql.NullString `db:"job_title" json:"job_title"`
 	Company  sql.NullString `db:"company" json:"company"`
-	Language string         `db:"language" json:"language"`
+	Locale   string         `db:"locale" json:"locale"`
 	ID       int64          `db:"id" json:"id"`
 }
 
@@ -153,7 +153,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		arg.Email,
 		arg.JobTitle,
 		arg.Company,
-		arg.Language,
+		arg.Locale,
 		arg.ID,
 	)
 	var i User
@@ -163,7 +163,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.Email,
 		&i.JobTitle,
 		&i.Company,
-		&i.Language,
+		&i.Locale,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
