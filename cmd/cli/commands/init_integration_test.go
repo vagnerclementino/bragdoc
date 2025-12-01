@@ -46,17 +46,8 @@ func TestInitCommand_Integration(t *testing.T) {
 	// Verify not initialized
 	assert.False(t, configManager.IsInitialized())
 
-	// Create user config
-	userConfig := config.UserConfig{
-		Name:     testUser.name,
-		Email:    testUser.email,
-		JobTitle: testUser.jobTitle,
-		Company:  testUser.company,
-		Locale:   testUser.language,
-	}
-
 	// Generate default configuration
-	defaultConfig := configManager.GetDefaultConfig(userConfig)
+	defaultConfig := configManager.GetDefaultConfig()
 
 	// Initialize configuration
 	err := configManager.Initialize(ctx, defaultConfig, config.FormatYAML)
@@ -66,14 +57,11 @@ func TestInitCommand_Integration(t *testing.T) {
 	configPath := configManager.GetConfigPath()
 	assert.FileExists(t, configPath)
 
-	// Verify configuration file contains correct data
+	// Verify configuration file was loaded successfully
 	loadedConfig, err := configManager.Load(ctx)
 	require.NoError(t, err)
-	assert.Equal(t, testUser.name, loadedConfig.User.Name)
-	assert.Equal(t, testUser.email, loadedConfig.User.Email)
-	assert.Equal(t, testUser.jobTitle, loadedConfig.User.JobTitle)
-	assert.Equal(t, testUser.company, loadedConfig.User.Company)
-	assert.Equal(t, testUser.language, loadedConfig.User.Locale)
+	assert.NotNil(t, loadedConfig)
+	assert.NotEmpty(t, loadedConfig.Database.Path)
 
 	// Setup database
 	dbPath := configManager.GetDatabasePath()
@@ -142,15 +130,8 @@ func TestInitCommand_Integration_MinimalFields(t *testing.T) {
 	// Create config manager
 	configManager := config.NewManager()
 
-	// Create user config with minimal fields
-	userConfig := config.UserConfig{
-		Name:  testUser.name,
-		Email: testUser.email,
-		// Language will default to "en"
-	}
-
 	// Generate default configuration
-	defaultConfig := configManager.GetDefaultConfig(userConfig)
+	defaultConfig := configManager.GetDefaultConfig()
 
 	// Initialize configuration
 	err := configManager.Initialize(ctx, defaultConfig, config.FormatYAML)
@@ -199,11 +180,7 @@ func TestInitCommand_Integration_DuplicateEmail(t *testing.T) {
 
 	// Setup database
 	configManager := config.NewManager()
-	userConfig := config.UserConfig{
-		Name:  "First User",
-		Email: "duplicate@example.com",
-	}
-	defaultConfig := configManager.GetDefaultConfig(userConfig)
+	defaultConfig := configManager.GetDefaultConfig()
 	err := configManager.Initialize(ctx, defaultConfig, config.FormatYAML)
 	require.NoError(t, err)
 
@@ -260,11 +237,7 @@ func TestInitCommand_Integration_AlreadyInitialized(t *testing.T) {
 	configManager := config.NewManager()
 
 	// Initialize first time
-	userConfig := config.UserConfig{
-		Name:  "Test User",
-		Email: "test@example.com",
-	}
-	defaultConfig := configManager.GetDefaultConfig(userConfig)
+	defaultConfig := configManager.GetDefaultConfig()
 	err := configManager.Initialize(ctx, defaultConfig, config.FormatYAML)
 	require.NoError(t, err)
 
@@ -311,15 +284,8 @@ func TestInitCommand_Integration_InvalidLocale(t *testing.T) {
 			// Create config manager
 			configManager := config.NewManager()
 
-			// Create user config with invalid locale and unique email
-			userConfig := config.UserConfig{
-				Name:   "Test User",
-				Email:  "test-invalid-" + locale + "@example.com",
-				Locale: locale,
-			}
-
 			// Generate default configuration
-			defaultConfig := configManager.GetDefaultConfig(userConfig)
+			defaultConfig := configManager.GetDefaultConfig()
 
 			// Initialize configuration (this should succeed - validation happens later)
 			err = configManager.Initialize(ctx, defaultConfig, config.FormatYAML)
@@ -368,80 +334,9 @@ func TestInitCommand_Integration_InvalidLocale(t *testing.T) {
 	os.Setenv("HOME", tempDir)
 }
 
-func TestInitCommand_Integration_MissingRequiredFields(t *testing.T) {
-	// Create temporary directory for test
-	tempDir := t.TempDir()
-	
-	// Override home directory for testing
-	originalHome := os.Getenv("HOME")
-	os.Setenv("HOME", tempDir)
-	defer os.Setenv("HOME", originalHome)
-
-	ctx := context.Background()
-
-	tests := []struct {
-		name      string
-		userName  string
-		userEmail string
-		wantErr   bool
-		errMsg    string
-	}{
-		{
-			name:      "missing_name",
-			userName:  "",
-			userEmail: "test@example.com",
-			wantErr:   true,
-			errMsg:    "user.name",
-		},
-		{
-			name:      "missing_email",
-			userName:  "Test User",
-			userEmail: "",
-			wantErr:   true,
-			errMsg:    "user.email",
-		},
-		{
-			name:      "missing_both",
-			userName:  "",
-			userEmail: "",
-			wantErr:   true,
-			errMsg:    "user.name",
-		},
-		{
-			name:      "valid_required_fields",
-			userName:  "Test User",
-			userEmail: "test@example.com",
-			wantErr:   false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Create config manager
-			configManager := config.NewManager()
-
-			// Create user config
-			userConfig := config.UserConfig{
-				Name:  tt.userName,
-				Email: tt.userEmail,
-			}
-
-			// Generate default configuration
-			defaultConfig := configManager.GetDefaultConfig(userConfig)
-
-			// Try to initialize configuration
-			// This should validate required fields
-			err := configManager.Initialize(ctx, defaultConfig, config.FormatYAML)
-			
-			if tt.wantErr {
-				require.Error(t, err)
-				assert.Contains(t, err.Error(), tt.errMsg)
-			} else {
-				require.NoError(t, err)
-			}
-		})
-	}
-}
+// TestInitCommand_Integration_MissingRequiredFields was removed
+// User validation now happens in the domain/service layer, not in config
+// The config only validates database path
 
 func TestInitCommand_Integration_ValidLocales(t *testing.T) {
 	// Create temporary directory for test
@@ -473,15 +368,8 @@ func TestInitCommand_Integration_ValidLocales(t *testing.T) {
 			// Create config manager
 			configManager := config.NewManager()
 
-			// Create user config with valid locale
-			userConfig := config.UserConfig{
-				Name:   "Test User",
-				Email:  "test-" + locale + "@example.com",
-				Locale: locale,
-			}
-
 			// Generate default configuration
-			defaultConfig := configManager.GetDefaultConfig(userConfig)
+			defaultConfig := configManager.GetDefaultConfig()
 
 			// Initialize configuration
 			err = configManager.Initialize(ctx, defaultConfig, config.FormatYAML)
@@ -580,14 +468,8 @@ func TestInitCommand_Integration_EmailValidation(t *testing.T) {
 			// Create config manager
 			configManager := config.NewManager()
 
-			// Create user config
-			userConfig := config.UserConfig{
-				Name:  "Test User",
-				Email: tt.email,
-			}
-
 			// Generate default configuration
-			defaultConfig := configManager.GetDefaultConfig(userConfig)
+			defaultConfig := configManager.GetDefaultConfig()
 
 			// Initialize configuration
 			err = configManager.Initialize(ctx, defaultConfig, config.FormatYAML)

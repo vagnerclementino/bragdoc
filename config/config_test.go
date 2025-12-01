@@ -17,11 +17,6 @@ func TestConfig_Validate(t *testing.T) {
 		{
 			name: "valid configuration",
 			config: &Config{
-				User: UserConfig{
-					Name:   "John Doe",
-					Email:  "john@example.com",
-					Locale: "en-US",
-				},
 				Database: DatabaseConfig{
 					Path: "/path/to/db",
 				},
@@ -29,38 +24,8 @@ func TestConfig_Validate(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "missing user name",
-			config: &Config{
-				User: UserConfig{
-					Email: "john@example.com",
-				},
-				Database: DatabaseConfig{
-					Path: "/path/to/db",
-				},
-			},
-			wantErr: true,
-			errMsg:  "user.name",
-		},
-		{
-			name: "missing user email",
-			config: &Config{
-				User: UserConfig{
-					Name: "John Doe",
-				},
-				Database: DatabaseConfig{
-					Path: "/path/to/db",
-				},
-			},
-			wantErr: true,
-			errMsg:  "user.email",
-		},
-		{
 			name: "missing database path",
 			config: &Config{
-				User: UserConfig{
-					Name:  "John Doe",
-					Email: "john@example.com",
-				},
 				Database: DatabaseConfig{},
 			},
 			wantErr: true,
@@ -82,44 +47,9 @@ func TestConfig_Validate(t *testing.T) {
 }
 
 func TestGetDefaultConfig(t *testing.T) {
-	user := UserConfig{
-		Name:     "Test User",
-		Email:    "test@example.com",
-		JobTitle: "Developer",
-		Company:  "Test Corp",
-		Locale:   "en-US",
-	}
-
-	config := GetDefaultConfig(user, "/test/dir")
-
-	assert.Equal(t, user.Name, config.User.Name)
-	assert.Equal(t, user.Email, config.User.Email)
-	assert.Equal(t, user.JobTitle, config.User.JobTitle)
-	assert.Equal(t, user.Company, config.User.Company)
-	assert.Equal(t, user.Locale, config.User.Locale)
+	config := GetDefaultConfig("/test/dir")
 
 	assert.Equal(t, "/test/dir/bragdoc.db", config.Database.Path)
-	assert.Equal(t, "openai", config.AI.Provider)
-	assert.Equal(t, "gpt-4", config.AI.Model)
-	assert.Equal(t, 2000, config.AI.MaxTokens)
-	assert.Equal(t, 8080, config.Server.Port)
-	assert.Equal(t, "info", config.Logging.Level)
-	assert.Equal(t, "en", config.I18n.Language)
-}
-
-func TestGetDefaultPrompts(t *testing.T) {
-	prompts := GetDefaultPrompts()
-
-	assert.NotEmpty(t, prompts.EnhanceDescription)
-	assert.NotEmpty(t, prompts.GenerateDocument)
-	assert.NotEmpty(t, prompts.SuggestTags)
-	assert.NotEmpty(t, prompts.TranslateBrag)
-
-	// Check that prompts contain expected placeholders
-	assert.Contains(t, prompts.EnhanceDescription, "{{.Description}}")
-	assert.Contains(t, prompts.GenerateDocument, "{{range .Brags}}")
-	assert.Contains(t, prompts.SuggestTags, "{{.Title}}")
-	assert.Contains(t, prompts.TranslateBrag, "{{.TargetLanguage}}")
 }
 
 func TestParseFormat(t *testing.T) {

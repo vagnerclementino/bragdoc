@@ -5,76 +5,51 @@ import (
 )
 
 // Config represents the complete application configuration
+// User data (name, email, job_title, company, locale) is stored in the database
+// and should not be duplicated here
 type Config struct {
-	User     UserConfig     `yaml:"user" json:"user" toml:"user"`
 	Database DatabaseConfig `yaml:"database" json:"database" toml:"database"`
-	AI       AIConfig       `yaml:"ai" json:"ai" toml:"ai"`
-	Server   ServerConfig   `yaml:"server" json:"server" toml:"server"`
-	Prompts  PromptsConfig  `yaml:"prompts" json:"prompts" toml:"prompts"`
-	Logging  LoggingConfig  `yaml:"logging" json:"logging" toml:"logging"`
-	I18n     I18nConfig     `yaml:"i18n" json:"i18n" toml:"i18n"`
-}
-
-// UserConfig represents user profile information
-type UserConfig struct {
-	Name     string `yaml:"name" json:"name" toml:"name" mapstructure:"name"`
-	Email    string `yaml:"email" json:"email" toml:"email" mapstructure:"email"`
-	JobTitle string `yaml:"job_title,omitempty" json:"job_title,omitempty" toml:"job_title,omitempty" mapstructure:"job_title"`
-	Company  string `yaml:"company,omitempty" json:"company,omitempty" toml:"company,omitempty" mapstructure:"company"`
-	Locale   string `yaml:"locale" json:"locale" toml:"locale" mapstructure:"locale"` // Locale format: language-COUNTRY (e.g., en-US, pt-BR, pt-PT)
+	// Future configurations can be added here as needed:
+	// AI       AIConfig       `yaml:"ai,omitempty" json:"ai,omitempty" toml:"ai,omitempty"`
+	// Server   ServerConfig   `yaml:"server,omitempty" json:"server,omitempty" toml:"server,omitempty"`
+	// Logging  LoggingConfig  `yaml:"logging,omitempty" json:"logging,omitempty" toml:"logging,omitempty"`
 }
 
 // DatabaseConfig represents database configuration
 type DatabaseConfig struct {
-	Path string `yaml:"path" json:"path" toml:"path"`
+	Path string `yaml:"path" json:"path" toml:"path"` // Path to SQLite database file
 }
 
-// AIConfig represents AI provider configuration
-type AIConfig struct {
-	Provider  string `yaml:"provider" json:"provider" toml:"provider"`
-	APIKey    string `yaml:"api_key" json:"api_key" toml:"api_key"`
-	Model     string `yaml:"model" json:"model" toml:"model"`
-	MaxTokens int    `yaml:"max_tokens" json:"max_tokens" toml:"max_tokens"`
-}
+// Commented out configurations for future use:
+// These are not currently used by the application but are documented here
+// for future implementation
 
-// ServerConfig represents web server configuration
-type ServerConfig struct {
-	Port        int    `yaml:"port" json:"port" toml:"port"`
-	StaticDir   string `yaml:"static_dir" json:"static_dir" toml:"static_dir"`
-	CORSEnabled bool   `yaml:"cors_enabled" json:"cors_enabled" toml:"cors_enabled"`
-}
+// AIConfig represents AI provider configuration (not currently used)
+// type AIConfig struct {
+// 	Provider  string `yaml:"provider" json:"provider" toml:"provider"`       // AI provider (e.g., "openai", "anthropic")
+// 	APIKey    string `yaml:"api_key" json:"api_key" toml:"api_key"`         // API key for the provider
+// 	Model     string `yaml:"model" json:"model" toml:"model"`               // Model to use (e.g., "gpt-4")
+// 	MaxTokens int    `yaml:"max_tokens" json:"max_tokens" toml:"max_tokens"` // Maximum tokens for generation
+// }
 
-// PromptsConfig represents AI prompts configuration
-type PromptsConfig struct {
-	EnhanceDescription string `yaml:"enhance_description" json:"enhance_description" toml:"enhance_description"`
-	GenerateDocument   string `yaml:"generate_document" json:"generate_document" toml:"generate_document"`
-	SuggestTags        string `yaml:"suggest_tags" json:"suggest_tags" toml:"suggest_tags"`
-	TranslateBrag      string `yaml:"translate_brag" json:"translate_brag" toml:"translate_brag"`
-}
+// ServerConfig represents web server configuration (not currently used)
+// type ServerConfig struct {
+// 	Port        int    `yaml:"port" json:"port" toml:"port"`                         // Server port
+// 	StaticDir   string `yaml:"static_dir" json:"static_dir" toml:"static_dir"`       // Static files directory
+// 	CORSEnabled bool   `yaml:"cors_enabled" json:"cors_enabled" toml:"cors_enabled"` // Enable CORS
+// }
 
-// LoggingConfig represents logging configuration
-type LoggingConfig struct {
-	Level    string `yaml:"level" json:"level" toml:"level"`         // debug, info, warn, error
-	FilePath string `yaml:"file_path" json:"file_path" toml:"file_path"` // ~/.bragdoc/logs/bragdoc.log
-	MaxSize  int    `yaml:"max_size" json:"max_size" toml:"max_size"`   // MB
-	MaxAge   int    `yaml:"max_age" json:"max_age" toml:"max_age"`     // days
-	Console  bool   `yaml:"console" json:"console" toml:"console"`     // also log to console
-}
-
-// I18nConfig represents internationalization configuration
-type I18nConfig struct {
-	Language string `yaml:"language" json:"language" toml:"language"` // en, pt, es, fr, etc.
-	Locale   string `yaml:"locale" json:"locale" toml:"locale"`     // en_US, pt_BR, es_ES, etc.
-}
+// LoggingConfig represents logging configuration (not currently used)
+// type LoggingConfig struct {
+// 	Level    string `yaml:"level" json:"level" toml:"level"`             // Log level: debug, info, warn, error
+// 	FilePath string `yaml:"file_path" json:"file_path" toml:"file_path"` // Log file path
+// 	MaxSize  int    `yaml:"max_size" json:"max_size" toml:"max_size"`   // Max log file size in MB
+// 	MaxAge   int    `yaml:"max_age" json:"max_age" toml:"max_age"`     // Max age of log files in days
+// 	Console  bool   `yaml:"console" json:"console" toml:"console"`     // Also log to console
+// }
 
 // Validate checks if the configuration is valid
 func (c *Config) Validate() error {
-	if c.User.Name == "" {
-		return ErrInvalidConfig{Field: "user.name", Reason: "name is required"}
-	}
-	if c.User.Email == "" {
-		return ErrInvalidConfig{Field: "user.email", Reason: "email is required"}
-	}
 	if c.Database.Path == "" {
 		return ErrInvalidConfig{Field: "database.path", Reason: "database path is required"}
 	}
@@ -91,123 +66,13 @@ func (e ErrInvalidConfig) Error() string {
 	return "invalid config field " + e.Field + ": " + e.Reason
 }
 
-// GetDefaultConfig returns a default configuration with user data
-func GetDefaultConfig(user UserConfig, configDir string) *Config {
+// GetDefaultConfig returns a default configuration
+// User data is stored in the database, not in the config file
+func GetDefaultConfig(configDir string) *Config {
 	return &Config{
-		User: user,
 		Database: DatabaseConfig{
 			Path: configDir + "/bragdoc.db",
 		},
-		AI: AIConfig{
-			Provider:  "openai",
-			APIKey:    "${OPENAI_API_KEY}",
-			Model:     "gpt-4",
-			MaxTokens: 2000,
-		},
-		Server: ServerConfig{
-			Port:        8080,
-			StaticDir:   "./web/static",
-			CORSEnabled: true,
-		},
-		Prompts:  GetDefaultPrompts(),
-		Logging:  GetDefaultLoggingConfig(configDir),
-		I18n:     GetDefaultI18nConfig(),
-	}
-}
-
-// GetDefaultPrompts returns default AI prompts
-func GetDefaultPrompts() PromptsConfig {
-	return PromptsConfig{
-		EnhanceDescription: `You are an assistant specialized in improving professional achievement descriptions.
-
-Task: Improve the following achievement description, making it more impactful and specific for use in professional promotion documents.
-
-Original description: {{.Description}}
-Target language: {{.Language}}
-
-Guidelines:
-- Use action verbs in past tense
-- Include metrics when possible
-- Highlight impact and results
-- Maintain professional tone
-- Maximum 200 words
-- Write the improved description in {{.Language}}
-
-Improved description:`,
-
-		GenerateDocument: `You are an expert in creating professional achievement documents (brag documents).
-
-Task: Create a professional document based on the following achievements in {{.Language}}.
-
-{{range .Brags}}
-- **{{.Title}}** ({{.Category}}): {{.Description}}
-{{if .Details}}Details: {{.Details}}{{end}}
-{{end}}
-
-User profile:
-- Name: {{.User.Name}}
-- Job Title: {{.User.JobTitle}}
-- Company: {{.User.Company}}
-
-Guidelines:
-- Write the entire document in {{.Language}}
-- Organize by categories
-- Use professional language
-- Highlight impact and results
-- Include introduction and conclusion
-- Format suitable for performance reviews
-
-Document:`,
-
-		SuggestTags: `Analyze the following achievement and suggest 3-5 relevant tags:
-
-Title: {{.Title}}
-Description: {{.Description}}
-
-Suggest tags that are:
-- Specific and relevant
-- Useful for categorization
-- In English
-- One word or short term
-
-Suggested tags (comma-separated):`,
-
-		TranslateBrag: `You are a professional translator specialized in career achievements and professional documents.
-
-Task: Translate and adapt the following professional achievement to {{.TargetLanguage}}.
-
-Original Title: {{.Title}}
-Original Description: {{.Description}}
-
-Guidelines:
-- Translate to {{.TargetLanguage}} maintaining professional tone
-- Adapt cultural references if needed
-- Keep technical terms accurate
-- Maintain the impact and metrics
-- Use appropriate action verbs for {{.TargetLanguage}}
-
-Provide the translation in this exact format:
-Title: [translated title]
-Description: [translated description]`,
-	}
-}
-
-// GetDefaultLoggingConfig returns default logging configuration
-func GetDefaultLoggingConfig(configDir string) LoggingConfig {
-	return LoggingConfig{
-		Level:    "info",
-		FilePath: configDir + "/logs/bragdoc.log",
-		MaxSize:  10,
-		MaxAge:   30,
-		Console:  false,
-	}
-}
-
-// GetDefaultI18nConfig returns default internationalization configuration
-func GetDefaultI18nConfig() I18nConfig {
-	return I18nConfig{
-		Language: "en",
-		Locale:   "en_US",
 	}
 }
 

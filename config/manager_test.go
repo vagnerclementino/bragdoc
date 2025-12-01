@@ -45,13 +45,7 @@ func TestManager_Initialize(t *testing.T) {
 		configDir: tempDir,
 	}
 
-	user := UserConfig{
-		Name:   "Test User",
-		Email:  "test@example.com",
-		Locale: "en-US",
-	}
-
-	config := GetDefaultConfig(user, tempDir)
+	config := GetDefaultConfig(tempDir)
 	ctx := context.Background()
 
 	// Test YAML initialization (v1 only supported format)
@@ -72,13 +66,7 @@ func TestManager_Initialize_UnsupportedFormat(t *testing.T) {
 		configDir: tempDir,
 	}
 
-	user := UserConfig{
-		Name:   "Test User",
-		Email:  "test@example.com",
-		Locale: "en-US",
-	}
-
-	config := GetDefaultConfig(user, tempDir)
+	config := GetDefaultConfig(tempDir)
 	ctx := context.Background()
 
 	// Test JSON initialization (not supported in v1)
@@ -101,12 +89,8 @@ func TestManager_Initialize_InvalidConfig(t *testing.T) {
 
 	// Config with missing required fields
 	config := &Config{
-		User: UserConfig{
-			Name: "Test User",
-			// Missing email
-		},
 		Database: DatabaseConfig{
-			Path: tempDir + "/bragdoc.db",
+			// Missing path
 		},
 	}
 
@@ -126,15 +110,7 @@ func TestManager_SaveAndLoad(t *testing.T) {
 		format:     FormatYAML,
 	}
 
-	user := UserConfig{
-		Name:     "Test User",
-		Email:    "test@example.com",
-		JobTitle: "Developer",
-		Company:  "Test Corp",
-		Locale:   "en-US",
-	}
-
-	originalConfig := GetDefaultConfig(user, tempDir)
+	originalConfig := GetDefaultConfig(tempDir)
 	ctx := context.Background()
 
 	// Save configuration
@@ -145,17 +121,8 @@ func TestManager_SaveAndLoad(t *testing.T) {
 	loadedConfig, err := manager.Load(ctx)
 	require.NoError(t, err)
 
-	// Verify loaded configuration matches original (core fields)
-	assert.Equal(t, originalConfig.User.Name, loadedConfig.User.Name)
-	assert.Equal(t, originalConfig.User.Email, loadedConfig.User.Email)
-	assert.Equal(t, originalConfig.User.Locale, loadedConfig.User.Locale)
-	assert.Equal(t, originalConfig.AI.Provider, loadedConfig.AI.Provider)
-	assert.Equal(t, originalConfig.AI.Model, loadedConfig.AI.Model)
-	assert.Equal(t, originalConfig.Server.Port, loadedConfig.Server.Port)
-	
-	// Optional fields should be preserved if set
-	assert.Equal(t, originalConfig.User.JobTitle, loadedConfig.User.JobTitle)
-	assert.Equal(t, originalConfig.User.Company, loadedConfig.User.Company)
+	// Verify loaded configuration matches original
+	assert.Equal(t, originalConfig.Database.Path, loadedConfig.Database.Path)
 }
 
 func TestManager_GetConfigPath(t *testing.T) {
@@ -188,17 +155,9 @@ func TestManager_GetDefaultConfig(t *testing.T) {
 		configDir: tempDir,
 	}
 
-	user := UserConfig{
-		Name:   "Test User",
-		Email:  "test@example.com",
-		Locale: "en-US",
-	}
-
-	config := manager.GetDefaultConfig(user)
+	config := manager.GetDefaultConfig()
 
 	assert.NotNil(t, config)
-	assert.Equal(t, user.Name, config.User.Name)
-	assert.Equal(t, user.Email, config.User.Email)
 	assert.Contains(t, config.Database.Path, tempDir)
 }
 

@@ -61,16 +61,8 @@ func runInit(ctx context.Context, cmd *cobra.Command) error {
 		return fmt.Errorf("invalid locale: %s (supported: en-US, pt-BR)", locale)
 	}
 
-	user := config.UserConfig{
-		Name:     name,
-		Email:    email,
-		JobTitle: jobTitle,
-		Company:  company,
-		Locale:   locale,
-	}
-
-	// Generate default configuration
-	defaultConfig := configManager.GetDefaultConfig(user)
+	// Generate default configuration (user data will be stored in database)
+	defaultConfig := configManager.GetDefaultConfig()
 
 	// Create configuration file (YAML only in v1)
 	if err := configManager.Initialize(ctx, defaultConfig, config.FormatYAML); err != nil {

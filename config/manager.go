@@ -19,9 +19,7 @@ type UseCase interface {
 	Save(ctx context.Context, config *Config) error
 	GetConfigPath() string
 	GetDatabasePath() string
-	SetupDatabase(ctx context.Context) error
-	GetDefaultConfig(user UserConfig) *Config
-	GetDefaultPrompts() PromptsConfig
+	GetDefaultConfig() *Config
 }
 
 // Manager implements the configuration management use case
@@ -134,11 +132,9 @@ func (m *Manager) Load(ctx context.Context) (*Config, error) {
 
 	// Expand environment variables in paths
 	config.Database.Path = os.ExpandEnv(config.Database.Path)
-	config.Logging.FilePath = os.ExpandEnv(config.Logging.FilePath)
 
 	// Expand ~ to home directory
 	config.Database.Path = expandHomeDir(config.Database.Path)
-	config.Logging.FilePath = expandHomeDir(config.Logging.FilePath)
 
 	return &config, nil
 }
@@ -214,22 +210,9 @@ func (m *Manager) GetDatabasePath() string {
 	return filepath.Join(m.configDir, "bragdoc.db")
 }
 
-// SetupDatabase is a placeholder for database setup
-// The actual database setup is handled by the database package
-func (m *Manager) SetupDatabase(ctx context.Context) error {
-	// This method is kept for interface compatibility
-	// The actual database setup happens in the database package
-	return nil
-}
-
-// GetDefaultConfig returns a default configuration with user data
-func (m *Manager) GetDefaultConfig(user UserConfig) *Config {
-	return GetDefaultConfig(user, m.configDir)
-}
-
-// GetDefaultPrompts returns default AI prompts
-func (m *Manager) GetDefaultPrompts() PromptsConfig {
-	return GetDefaultPrompts()
+// GetDefaultConfig returns a default configuration
+func (m *Manager) GetDefaultConfig() *Config {
+	return GetDefaultConfig(m.configDir)
 }
 
 // detectConfigFile finds and sets the configuration file path and format
@@ -258,47 +241,8 @@ func (m *Manager) detectConfigFile() error {
 
 // setViperConfig sets all configuration values in viper
 func (m *Manager) setViperConfig(config *Config) error {
-	// User configuration
-	m.viper.Set("user.name", config.User.Name)
-	m.viper.Set("user.email", config.User.Email)
-	if config.User.JobTitle != "" {
-		m.viper.Set("user.job_title", config.User.JobTitle)
-	}
-	if config.User.Company != "" {
-		m.viper.Set("user.company", config.User.Company)
-	}
-	m.viper.Set("user.locale", config.User.Locale)
-
 	// Database configuration
 	m.viper.Set("database.path", config.Database.Path)
-
-	// AI configuration
-	m.viper.Set("ai.provider", config.AI.Provider)
-	m.viper.Set("ai.api_key", config.AI.APIKey)
-	m.viper.Set("ai.model", config.AI.Model)
-	m.viper.Set("ai.max_tokens", config.AI.MaxTokens)
-
-	// Server configuration
-	m.viper.Set("server.port", config.Server.Port)
-	m.viper.Set("server.static_dir", config.Server.StaticDir)
-	m.viper.Set("server.cors_enabled", config.Server.CORSEnabled)
-
-	// Prompts configuration
-	m.viper.Set("prompts.enhance_description", config.Prompts.EnhanceDescription)
-	m.viper.Set("prompts.generate_document", config.Prompts.GenerateDocument)
-	m.viper.Set("prompts.suggest_tags", config.Prompts.SuggestTags)
-	m.viper.Set("prompts.translate_brag", config.Prompts.TranslateBrag)
-
-	// Logging configuration
-	m.viper.Set("logging.level", config.Logging.Level)
-	m.viper.Set("logging.file_path", config.Logging.FilePath)
-	m.viper.Set("logging.max_size", config.Logging.MaxSize)
-	m.viper.Set("logging.max_age", config.Logging.MaxAge)
-	m.viper.Set("logging.console", config.Logging.Console)
-
-	// I18n configuration
-	m.viper.Set("i18n.language", config.I18n.Language)
-	m.viper.Set("i18n.locale", config.I18n.Locale)
 
 	return nil
 }
