@@ -257,8 +257,94 @@ else
 fi
 echo ""
 
-# Step 11: Test error handling
-echo -e "${BLUE}Step 11: Testing error handling...${NC}"
+# Step 11: Test tag management
+echo -e "${BLUE}Step 11: Testing tag management...${NC}"
+if ./${BINARY_NAME} tag list 2>&1 | grep -q "test\|smoke\|automation\|leadership\|team"; then
+    print_result "tag list (auto-created tags)" 0
+else
+    print_result "tag list (auto-created tags)" 1 "Failed to list auto-created tags"
+fi
+
+if ./${BINARY_NAME} tag add --name "golang" 2>&1 | grep -q "created successfully"; then
+    print_result "tag add" 0
+else
+    print_result "tag add" 1 "Failed to create tag"
+fi
+
+# Add another tag specifically for testing removal (not associated with any brag)
+if ./${BINARY_NAME} tag add --name "removeme" 2>&1 | grep -q "created successfully"; then
+    print_result "tag add (for removal test)" 0
+else
+    print_result "tag add (for removal test)" 1 "Failed to create tag for removal test"
+fi
+
+if ./${BINARY_NAME} tag list --format json 2>&1 | grep -q '"Name"'; then
+    print_result "tag list (json format)" 0
+else
+    print_result "tag list (json format)" 1 "Failed to list tags in JSON"
+fi
+
+if ./${BINARY_NAME} tag list --format yaml 2>&1 | grep -q "name:"; then
+    print_result "tag list (yaml format)" 0
+else
+    print_result "tag list (yaml format)" 1 "Failed to list tags in YAML"
+fi
+
+# Test tag validation
+if ./${BINARY_NAME} tag add --name "a" 2>&1 | grep -q "at least 2 characters"; then
+    print_result "tag validation (too short)" 0
+else
+    print_result "tag validation (too short)" 1 "Should reject short tag name"
+fi
+
+if ./${BINARY_NAME} tag add --name "this-is-way-too-long-x" 2>&1 | grep -q "cannot exceed 20 characters"; then
+    print_result "tag validation (too long)" 0
+else
+    print_result "tag validation (too long)" 1 "Should reject long tag name"
+fi
+
+if ./${BINARY_NAME} tag add --name "golang" 2>&1 | grep -q "already exists"; then
+    print_result "tag validation (duplicate)" 0
+else
+    print_result "tag validation (duplicate)" 1 "Should reject duplicate tag"
+fi
+
+# Get a tag ID to test removal
+# First, let's see what tags we have and get the golang tag ID
+TAG_LIST=$(./${BINARY_NAME} tag list 2>&1)
+if echo "$TAG_LIST" | grep -q "golang"; then
+    # Extract the ID from the table format (first column)
+    # Skip the header lines (ID, --) and get only numeric IDs
+    TAG_ID=$(echo "$TAG_LIST" | grep "golang" | grep -v "^ID" | grep -v "^--" | awk '{print $1}' | grep -E '^[0-9]+$')
+    
+    if [ -n "$TAG_ID" ] && [ "$TAG_ID" -gt 0 ] 2>/dev/null; then
+        # Show what we're about to remove for debugging
+        echo "  Attempting to remove tag ID: $TAG_ID"
+        
+        REMOVE_OUTPUT=$(./${BINARY_NAME} tag remove "$TAG_ID" --confirm 2>&1)
+        if echo "$REMOVE_OUTPUT" | grep -q "removed successfully"; then
+            print_result "tag remove" 0
+        else
+            print_result "tag remove" 1 "Failed to remove tag ID $TAG_ID. Output: $REMOVE_OUTPUT"
+        fi
+        
+        # Verify the tag was actually removed
+        VERIFY_LIST=$(./${BINARY_NAME} tag list 2>&1)
+        if ! echo "$VERIFY_LIST" | grep -q "golang"; then
+            print_result "verify tag removal" 0
+        else
+            print_result "verify tag removal" 1 "Tag was not removed. Current tags: $VERIFY_LIST"
+        fi
+    else
+        print_result "tag remove" 1 "Invalid tag ID: '$TAG_ID'"
+    fi
+else
+    print_result "tag remove" 1 "golang tag not found in list"
+fi
+echo ""
+
+# Step 12: Test error handling
+echo -e "${BLUE}Step 12: Testing error handling...${NC}"
 if ./${BINARY_NAME} brag add --title "Bad" --description "Too short" 2>&1 | grep -q "at least"; then
     print_result "validation error (short title)" 0
 else

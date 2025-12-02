@@ -35,8 +35,8 @@ func (t *Tag) Validate() error {
 		return fmt.Errorf("tag name must be at least 2 characters, got %d", len(name))
 	}
 
-	if len(name) > 50 {
-		return fmt.Errorf("tag name cannot exceed 50 characters, got %d", len(name))
+	if len(name) > 20 {
+		return fmt.Errorf("tag name cannot exceed 20 characters, got %d", len(name))
 	}
 
 	return nil

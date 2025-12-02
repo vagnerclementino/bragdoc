@@ -15,6 +15,7 @@ build their own "Brag Documents" to track and showcase their professional achiev
 
 	rootCmd.AddCommand(
 		NewBragCmd(bragService, tagService),
+		NewTagCmd(tagService),
 		NewInitCmd(),
 		NewVersionCmd(),
 	)

@@ -43,11 +43,11 @@ func TestTag_Validate(t *testing.T) {
 			name: "should return error when name is too long",
 			tag: &Tag{
 				ID:      1,
-				Name:    "this is a very long tag name that exceeds the maximum allowed length of fifty characters",
+				Name:    "this-is-a-very-long-tag-name",
 				OwnerID: 1,
 			},
 			expectError: true,
-			errorMsg:    "tag name cannot exceed 50 characters",
+			errorMsg:    "tag name cannot exceed 20 characters",
 		},
 		{
 			name: "should pass validation with valid data",

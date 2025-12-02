@@ -25,7 +25,7 @@ CREATE TABLE brags (
 
 CREATE TABLE tags (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
+    name TEXT NOT NULL CHECK(length(name) >= 2 AND length(name) <= 20), -- Tag name: 2-20 characters
     owner_id INTEGER NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(name, owner_id),
