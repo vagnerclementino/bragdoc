@@ -309,37 +309,33 @@ else
     print_result "tag validation (duplicate)" 1 "Should reject duplicate tag"
 fi
 
-# Get a tag ID to test removal
-# First, let's see what tags we have and get the golang tag ID
+# Get a tag ID to test removal (use the "removeme" tag we just created)
 TAG_LIST=$(./${BINARY_NAME} tag list 2>&1)
-if echo "$TAG_LIST" | grep -q "golang"; then
+if echo "$TAG_LIST" | grep -q "removeme"; then
     # Extract the ID from the table format (first column)
     # Skip the header lines (ID, --) and get only numeric IDs
-    TAG_ID=$(echo "$TAG_LIST" | grep "golang" | grep -v "^ID" | grep -v "^--" | awk '{print $1}' | grep -E '^[0-9]+$')
+    TAG_ID=$(echo "$TAG_LIST" | grep "removeme" | grep -v "^ID" | grep -v "^--" | awk '{print $1}' | grep -E '^[0-9]+$')
     
     if [ -n "$TAG_ID" ] && [ "$TAG_ID" -gt 0 ] 2>/dev/null; then
-        # Show what we're about to remove for debugging
-        echo "  Attempting to remove tag ID: $TAG_ID"
-        
         REMOVE_OUTPUT=$(./${BINARY_NAME} tag remove "$TAG_ID" --confirm 2>&1)
         if echo "$REMOVE_OUTPUT" | grep -q "removed successfully"; then
             print_result "tag remove" 0
         else
-            print_result "tag remove" 1 "Failed to remove tag ID $TAG_ID. Output: $REMOVE_OUTPUT"
+            print_result "tag remove" 1 "Failed to remove tag ID $TAG_ID"
         fi
         
         # Verify the tag was actually removed
         VERIFY_LIST=$(./${BINARY_NAME} tag list 2>&1)
-        if ! echo "$VERIFY_LIST" | grep -q "golang"; then
+        if ! echo "$VERIFY_LIST" | grep -q "removeme"; then
             print_result "verify tag removal" 0
         else
-            print_result "verify tag removal" 1 "Tag was not removed. Current tags: $VERIFY_LIST"
+            print_result "verify tag removal" 1 "Tag was not removed"
         fi
     else
         print_result "tag remove" 1 "Invalid tag ID: '$TAG_ID'"
     fi
 else
-    print_result "tag remove" 1 "golang tag not found in list"
+    print_result "tag remove" 1 "removeme tag not found in list"
 fi
 echo ""
 
