@@ -39,3 +39,6 @@ coverage.txt
 
 .DS_Store
 .aider*
+
+# Smoke test directory
+.bragdoc

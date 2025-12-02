@@ -70,6 +70,11 @@ package: build ##@application creates packaged versions (zip, tar.gz) from the b
 	zip -r $(BINARY_NAME).zip $(BINARY_NAME)
 	tar czf $(BINARY_NAME).tar.gz $(BINARY_NAME)
 
+.PHONY: smoke
+smoke: ##@quality run smoke tests to verify core functionality
+	@echo "🔥 Running smoke tests..."
+	@./smoke.sh $(TARGET_OS)
+
 # ignore unknown commands
 %:
     @:
