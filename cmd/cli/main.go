@@ -24,7 +24,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to open database: %v", err)
 	}
-	defer db.Close()
+	defer func(db *database.DB) {
+		err := db.Close()
+		if err != nil {
+			log.Fatalf("failed to close database: %v", err)
+		}
+	}(db)
 
 	// Initialize repositories
 	bragRepo := repository.NewBragRepository(db.Conn())
