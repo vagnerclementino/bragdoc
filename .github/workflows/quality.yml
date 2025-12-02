@@ -1,38 +1,137 @@
-name: quality
+name: Quality Pipeline
 
 on:
   push:
     branches:
       - main
+      - beta_version
   pull_request:
+    branches:
+      - main
+      - beta_version
 
-concurrency: quality
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  quality:
+  quality-checks:
+    name: Quality Checks
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v3
-        name: checkout
-
-      - uses: actions/setup-go@v4
-        name: setup-go
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
-          go-version: 1.21
-
+          go-version: '1.23'
+          cache: true
+      
       - name: Check go mod
         run: |
           go mod tidy
-          git diff --exit-code go.mod
-
-      - name: lint
-        uses: golangci/golangci-lint-action@v3
+          git diff --exit-code go.mod go.sum
+      
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v4
         with:
-          version: v1.54
-          args: --issues-exit-code=0 --timeout 3m0s
+          version: latest
+          args: --timeout 5m
           only-new-issues: true
-          skip-cache: true
-      - name: Run-test
+      
+      - name: Run unit tests
         run: |
-          go mod tidy
-          go test ./...
+          go test ./... -v -race -coverprofile=coverage.txt -covermode=atomic
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.txt
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+  
+  smoke-tests:
+    name: Smoke Tests
+    needs: quality-checks
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            target: linux/amd64
+          - os: macos-latest
+            target: darwin/arm64
+    
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+      
+      - name: Install dependencies (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+      
+      - name: Run smoke tests
+        env:
+          TARGET_OS: ${{ matrix.target }}
+        run: |
+          chmod +x smoke.sh
+          make smoke
+  
+  integration-tests:
+    name: Integration Tests
+    needs: quality-checks
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+      
+      - name: Run integration tests
+        run: |
+          go test ./... -v -run Integration
+      
+      - name: Run E2E tests
+        run: |
+          go test ./cmd/cli/commands -v -run E2E
+  
+  quality-summary:
+    name: Quality Summary
+    needs: [quality-checks, smoke-tests, integration-tests]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Check quality results
+        run: |
+          echo "Quality Checks: ${{ needs.quality-checks.result }}"
+          echo "Smoke Tests: ${{ needs.smoke-tests.result }}"
+          echo "Integration Tests: ${{ needs.integration-tests.result }}"
+          
+          if [ "${{ needs.quality-checks.result }}" != "success" ] || \
+             [ "${{ needs.smoke-tests.result }}" != "success" ] || \
+             [ "${{ needs.integration-tests.result }}" != "success" ]; then
+            echo "❌ Quality pipeline failed"
+            exit 1
+          fi
+          
+          echo "✅ All quality checks passed!"
