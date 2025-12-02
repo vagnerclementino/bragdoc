@@ -15,7 +15,7 @@ The `quality.yml` workflow ensures code quality and functionality through multip
 
 **Steps**:
 - Check Go module consistency (`go mod tidy`)
-- Run `golangci-lint` for code quality
+- Run `golangci-lint` for code quality (warnings only, doesn't fail pipeline)
 - Execute unit tests with race detection
 - Generate and upload coverage reports to Codecov
 
@@ -116,6 +116,18 @@ go test ./cmd/cli/commands -v -run E2E
 ```
 
 ### Troubleshooting
+
+#### Linting Issues
+
+The `golangci-lint` step is configured to not fail the pipeline (`continue-on-error: true` and `--issues-exit-code=0`). This means:
+- Linting issues will be reported as warnings
+- The pipeline will continue even if there are linting issues
+- You should still review and fix linting warnings before merging
+
+To run linting locally and fix issues:
+```bash
+golangci-lint run --timeout 5m --fix
+```
 
 #### Smoke Tests Fail on macOS
 
