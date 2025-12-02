@@ -1,14 +1,9 @@
 name: Quality Pipeline
 
 on:
-  push:
-    branches:
-      - main
-      - beta_version
   pull_request:
     branches:
       - main
-      - beta_version
 
 concurrency:
   group: quality-${{ github.ref }}
@@ -34,7 +29,7 @@ jobs:
           go mod tidy
           git diff --exit-code go.mod go.sum
       
-      - name: Run golangci-lint
+      - name: Run Linter
         uses: golangci/golangci-lint-action@v4
         continue-on-error: true
         with:
