@@ -29,13 +29,15 @@ func main() {
 	// Initialize repositories
 	bragRepo := repository.NewBragRepository(db.Conn())
 	userRepo := repository.NewUserRepository(db.Conn())
+	tagRepo := repository.NewTagRepository(db.Conn())
 
 	// Initialize services
 	bragService := service.NewBragService(bragRepo)
 	userService := service.NewUserService(userRepo)
+	tagService := service.NewTagService(tagRepo)
 
 	// Create root command with dependencies
-	rootCmd := commands.NewRootCmd(bragService, userService)
+	rootCmd := commands.NewRootCmd(bragService, userService, tagService)
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
