@@ -1,0 +1,22 @@
+package commands
+
+import (
+	"github.com/spf13/cobra"
+	"github.com/vagnerclementino/bragdoc/internal/service"
+)
+
+func NewDocCmd(docService *service.DocumentService, bragService *service.BragService, tagService *service.TagService) *cobra.Command {
+	docCmd := &cobra.Command{
+		Use:   "doc",
+		Short: "Generate brag documents",
+		Long:  `Generate professional achievement documents in various formats`,
+		// Check initialization before running any doc subcommand
+		PersistentPreRunE: requiresInitialization(),
+	}
+
+	docCmd.AddCommand(
+		NewDocGenerateCmd(docService, bragService, tagService),
+	)
+
+	return docCmd
+}

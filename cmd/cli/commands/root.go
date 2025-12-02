@@ -5,7 +5,7 @@ import (
 	"github.com/vagnerclementino/bragdoc/internal/service"
 )
 
-func NewRootCmd(bragService *service.BragService, userService *service.UserService, tagService *service.TagService) *cobra.Command {
+func NewRootCmd(bragService *service.BragService, userService *service.UserService, tagService *service.TagService, docService *service.DocumentService) *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:   "bragdoc",
 		Short: "Bragdoc - Document your professional achievements",
@@ -16,6 +16,7 @@ build their own "Brag Documents" to track and showcase their professional achiev
 	rootCmd.AddCommand(
 		NewBragCmd(bragService, tagService),
 		NewTagCmd(tagService),
+		NewDocCmd(docService, bragService, tagService),
 		NewInitCmd(),
 		NewVersionCmd(),
 	)

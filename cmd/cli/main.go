@@ -35,9 +35,10 @@ func main() {
 	bragService := service.NewBragService(bragRepo)
 	userService := service.NewUserService(userRepo)
 	tagService := service.NewTagService(tagRepo)
+	docService := service.NewDocumentService(userService)
 
 	// Create root command with dependencies
-	rootCmd := commands.NewRootCmd(bragService, userService, tagService)
+	rootCmd := commands.NewRootCmd(bragService, userService, tagService, docService)
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}

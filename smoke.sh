@@ -317,7 +317,7 @@ if echo "$TAG_LIST" | grep -q "removeme"; then
     TAG_ID=$(echo "$TAG_LIST" | grep "removeme" | grep -v "^ID" | grep -v "^--" | awk '{print $1}' | grep -E '^[0-9]+$')
     
     if [ -n "$TAG_ID" ] && [ "$TAG_ID" -gt 0 ] 2>/dev/null; then
-        REMOVE_OUTPUT=$(./${BINARY_NAME} tag remove "$TAG_ID" --confirm 2>&1)
+        REMOVE_OUTPUT=$(./${BINARY_NAME} tag remove "$TAG_ID" --force 2>&1)
         if echo "$REMOVE_OUTPUT" | grep -q "removed successfully"; then
             print_result "tag remove" 0
         else
@@ -339,8 +339,117 @@ else
 fi
 echo ""
 
-# Step 12: Test error handling
-echo -e "${BLUE}Step 12: Testing error handling...${NC}"
+# Step 12: Test document generation
+echo -e "${BLUE}Step 12: Testing document generation...${NC}"
+
+# Test that doc generate fails without initialization (before we have brags)
+rm -rf ./.bragdoc
+if ./${BINARY_NAME} doc generate 2>&1 | grep -q "not initialized"; then
+    print_result "doc generate fails without init" 0
+else
+    print_result "doc generate fails without init" 1 "Should require initialization"
+fi
+
+# Re-initialize for document tests
+export HOME=$(pwd)
+mkdir -p $HOME/.bragdoc
+./${BINARY_NAME} init --name "Smoke Test User" --email "smoke@test.com" --locale "en-US" >/dev/null 2>&1
+
+# Re-add some brags for document generation
+./${BINARY_NAME} brag add --title "Test Achievement" --description "This is a test achievement for smoke testing" --category "achievement" --tags "test,smoke" >/dev/null 2>&1
+./${BINARY_NAME} brag add --title "Leadership Project" --description "Led a team to deliver a critical project on time" --category "leadership" --tags "leadership,team" >/dev/null 2>&1
+
+# Test basic document generation
+if ./${BINARY_NAME} doc generate 2>&1 | grep -q "Professional Achievements"; then
+    print_result "doc generate (basic)" 0
+else
+    print_result "doc generate (basic)" 1 "Failed to generate document"
+fi
+
+# Test document generation with output file
+OUTPUT_FILE="test_achievements.md"
+if ./${BINARY_NAME} doc generate --output "$OUTPUT_FILE" 2>&1 | grep -q "Document generated successfully"; then
+    print_result "doc generate with output file" 0
+    
+    # Verify file was created and contains expected content
+    if [ -f "$OUTPUT_FILE" ] && grep -q "Professional Achievements" "$OUTPUT_FILE"; then
+        print_result "verify output file content" 0
+    else
+        print_result "verify output file content" 1 "Output file missing or invalid"
+    fi
+    
+    # Clean up test file
+    rm -f "$OUTPUT_FILE"
+else
+    print_result "doc generate with output file" 1 "Failed to generate document to file"
+fi
+
+# Test document generation with specific brags
+if ./${BINARY_NAME} doc generate --brags 1,2 2>&1 | grep -q "Professional Achievements"; then
+    print_result "doc generate with specific brags" 0
+else
+    print_result "doc generate with specific brags" 1 "Failed to generate document with specific brags"
+fi
+
+# Test document generation with category filter
+if ./${BINARY_NAME} doc generate --category leadership 2>&1 | grep -q "Professional Achievements"; then
+    print_result "doc generate with category filter" 0
+else
+    print_result "doc generate with category filter" 1 "Failed to generate document with category filter"
+fi
+
+# Test document generation with tags filter
+if ./${BINARY_NAME} doc generate --tags test 2>&1 | grep -q "Professional Achievements"; then
+    print_result "doc generate with tags filter" 0
+else
+    print_result "doc generate with tags filter" 1 "Failed to generate document with tags filter"
+fi
+
+# Test unsupported format error
+if ./${BINARY_NAME} doc generate --format pdf 2>&1 | grep -q "not yet supported"; then
+    print_result "doc generate unsupported format" 0
+else
+    print_result "doc generate unsupported format" 1 "Should reject unsupported format"
+fi
+
+# Test AI enhancement error (not implemented)
+if ./${BINARY_NAME} doc generate --enhance-with-ai 2>&1 | grep -q "not yet implemented"; then
+    print_result "doc generate AI enhancement error" 0
+else
+    print_result "doc generate AI enhancement error" 1 "Should reject AI enhancement"
+fi
+
+# Test invalid brag ID error
+if ./${BINARY_NAME} doc generate --brags 999 2>&1 | grep -q "failed to get brag"; then
+    print_result "doc generate invalid brag ID" 0
+else
+    print_result "doc generate invalid brag ID" 1 "Should reject invalid brag ID"
+fi
+
+# Test invalid category error
+if ./${BINARY_NAME} doc generate --category invalid 2>&1 | grep -q "invalid category"; then
+    print_result "doc generate invalid category" 0
+else
+    print_result "doc generate invalid category" 1 "Should reject invalid category"
+fi
+
+# Test help command for doc generate
+if ./${BINARY_NAME} doc generate --help 2>&1 | grep -q "Generate a professional achievement document"; then
+    print_result "doc generate help" 0
+else
+    print_result "doc generate help" 1 "Failed to show help"
+fi
+
+# Test doc help command
+if ./${BINARY_NAME} doc --help 2>&1 | grep -q "Generate professional achievement documents"; then
+    print_result "doc help" 0
+else
+    print_result "doc help" 1 "Failed to show doc help"
+fi
+echo ""
+
+# Step 13: Test error handling
+echo -e "${BLUE}Step 13: Testing error handling...${NC}"
 if ./${BINARY_NAME} brag add --title "Bad" --description "Too short" 2>&1 | grep -q "at least"; then
     print_result "validation error (short title)" 0
 else
