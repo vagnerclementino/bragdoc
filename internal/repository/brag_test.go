@@ -31,16 +31,29 @@ func createTestUser(t *testing.T, db *database.DB) int64 {
 	return user.ID
 }
 
+func createTestUserObject(t *testing.T, db *database.DB) *domain.User {
+	ctx := context.Background()
+	userRepo := NewUserRepository(db.Conn())
+	user, err := userRepo.Insert(ctx, &domain.User{
+		Name:   "Test User",
+		Email:  "test@example.com",
+		Locale: "en-US",
+	})
+	require.NoError(t, err)
+	return user
+}
+
 func TestBragRepository_Insert(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()
 
-	userID := createTestUser(t, db)
-	repo := NewBragRepository(db.Conn())
+	userRepo := NewUserRepository(db.Conn())
+	user := createTestUserObject(t, db)
+	repo := NewBragRepository(db.Conn(), userRepo)
 	ctx := context.Background()
 
 	brag := &domain.Brag{
-		OwnerID:     userID,
+		Owner:       *user,
 		Title:       "Test Achievement",
 		Description: "This is a test achievement with sufficient description length",
 		Category:    domain.CategoryProject,
@@ -58,13 +71,14 @@ func TestBragRepository_Select(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()
 
-	userID := createTestUser(t, db)
-	repo := NewBragRepository(db.Conn())
+	userRepo := NewUserRepository(db.Conn())
+	user := createTestUserObject(t, db)
+	repo := NewBragRepository(db.Conn(), userRepo)
 	ctx := context.Background()
 
 	// Create a brag
 	brag := &domain.Brag{
-		OwnerID:     userID,
+		Owner:       *user,
 		Title:       "Test Achievement",
 		Description: "This is a test achievement with sufficient description length",
 		Category:    domain.CategoryProject,
@@ -84,7 +98,8 @@ func TestBragRepository_Select_NotFound(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()
 
-	repo := NewBragRepository(db.Conn())
+	userRepo := NewUserRepository(db.Conn())
+	repo := NewBragRepository(db.Conn(), userRepo)
 	ctx := context.Background()
 
 	// Try to retrieve a non-existent brag
@@ -97,14 +112,15 @@ func TestBragRepository_SelectAll(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()
 
-	userID := createTestUser(t, db)
-	repo := NewBragRepository(db.Conn())
+	userRepo := NewUserRepository(db.Conn())
+	user := createTestUserObject(t, db)
+	repo := NewBragRepository(db.Conn(), userRepo)
 	ctx := context.Background()
 
 	// Create multiple brags
 	for i := 0; i < 3; i++ {
 		brag := &domain.Brag{
-			OwnerID:     userID,
+			Owner:       *user,
 			Title:       "Test Achievement",
 			Description: "This is a test achievement with sufficient description length",
 			Category:    domain.CategoryProject,
@@ -114,7 +130,7 @@ func TestBragRepository_SelectAll(t *testing.T) {
 	}
 
 	// Retrieve all brags
-	brags, err := repo.SelectAll(ctx, userID)
+	brags, err := repo.SelectAll(ctx, user.ID)
 	require.NoError(t, err)
 	assert.Len(t, brags, 3)
 }
@@ -123,13 +139,14 @@ func TestBragRepository_Update(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()
 
-	userID := createTestUser(t, db)
-	repo := NewBragRepository(db.Conn())
+	userRepo := NewUserRepository(db.Conn())
+	user := createTestUserObject(t, db)
+	repo := NewBragRepository(db.Conn(), userRepo)
 	ctx := context.Background()
 
 	// Create a brag
 	brag := &domain.Brag{
-		OwnerID:     userID,
+		Owner:       *user,
 		Title:       "Original Title",
 		Description: "This is the original description with sufficient length",
 		Category:    domain.CategoryProject,
@@ -153,13 +170,14 @@ func TestBragRepository_Delete(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()
 
-	userID := createTestUser(t, db)
-	repo := NewBragRepository(db.Conn())
+	userRepo := NewUserRepository(db.Conn())
+	user := createTestUserObject(t, db)
+	repo := NewBragRepository(db.Conn(), userRepo)
 	ctx := context.Background()
 
 	// Create a brag
 	brag := &domain.Brag{
-		OwnerID:     userID,
+		Owner:       *user,
 		Title:       "Test Achievement",
 		Description: "This is a test achievement with sufficient description length",
 		Category:    domain.CategoryProject,
@@ -180,8 +198,9 @@ func TestBragRepository_SelectByCategory(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()
 
-	userID := createTestUser(t, db)
-	repo := NewBragRepository(db.Conn())
+	userRepo := NewUserRepository(db.Conn())
+	user := createTestUserObject(t, db)
+	repo := NewBragRepository(db.Conn(), userRepo)
 	ctx := context.Background()
 
 	// Create brags with different categories
@@ -193,7 +212,7 @@ func TestBragRepository_SelectByCategory(t *testing.T) {
 
 	for _, cat := range categories {
 		brag := &domain.Brag{
-			OwnerID:     userID,
+			Owner:       *user,
 			Title:       "Test Achievement",
 			Description: "This is a test achievement with sufficient description length",
 			Category:    cat,
@@ -203,11 +222,11 @@ func TestBragRepository_SelectByCategory(t *testing.T) {
 	}
 
 	// Retrieve brags by category
-	projectBrags, err := repo.SelectByCategory(ctx, userID, domain.CategoryProject)
+	projectBrags, err := repo.SelectByCategory(ctx, user.ID, domain.CategoryProject)
 	require.NoError(t, err)
 	assert.Len(t, projectBrags, 2)
 
-	achievementBrags, err := repo.SelectByCategory(ctx, userID, domain.CategoryAchievement)
+	achievementBrags, err := repo.SelectByCategory(ctx, user.ID, domain.CategoryAchievement)
 	require.NoError(t, err)
 	assert.Len(t, achievementBrags, 1)
 }
@@ -216,27 +235,28 @@ func TestBragRepository_SelectByTags(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()
 
-	userID := createTestUser(t, db)
-	bragRepo := NewBragRepository(db.Conn())
+	userRepo := NewUserRepository(db.Conn())
+	user := createTestUserObject(t, db)
+	bragRepo := NewBragRepository(db.Conn(), userRepo)
 	tagRepo := NewTagRepository(db.Conn())
 	ctx := context.Background()
 
 	// Create tags
 	tag1, err := tagRepo.Insert(ctx, &domain.Tag{
 		Name:    "golang",
-		OwnerID: userID,
+		OwnerID: user.ID,
 	})
 	require.NoError(t, err)
 
 	tag2, err := tagRepo.Insert(ctx, &domain.Tag{
 		Name:    "testing",
-		OwnerID: userID,
+		OwnerID: user.ID,
 	})
 	require.NoError(t, err)
 
 	// Create brags
 	brag1 := &domain.Brag{
-		OwnerID:     userID,
+		Owner:       *user,
 		Title:       "Brag with golang tag",
 		Description: "This is a test achievement with sufficient description length",
 		Category:    domain.CategoryProject,
@@ -245,7 +265,7 @@ func TestBragRepository_SelectByTags(t *testing.T) {
 	require.NoError(t, err)
 
 	brag2 := &domain.Brag{
-		OwnerID:     userID,
+		Owner:       *user,
 		Title:       "Brag with both tags",
 		Description: "This is a test achievement with sufficient description length",
 		Category:    domain.CategoryProject,
@@ -254,7 +274,7 @@ func TestBragRepository_SelectByTags(t *testing.T) {
 	require.NoError(t, err)
 
 	brag3 := &domain.Brag{
-		OwnerID:     userID,
+		Owner:       *user,
 		Title:       "Brag with no tags",
 		Description: "This is a test achievement with sufficient description length",
 		Category:    domain.CategoryProject,
@@ -270,17 +290,17 @@ func TestBragRepository_SelectByTags(t *testing.T) {
 	require.NoError(t, err)
 
 	// Search by single tag - should return brags with that tag
-	brags, err := bragRepo.SelectByTags(ctx, userID, []string{"golang"})
+	brags, err := bragRepo.SelectByTags(ctx, user.ID, []string{"golang"})
 	require.NoError(t, err)
 	assert.Len(t, brags, 2) // Both brag1 and brag2 have golang tag
 
 	// Search by multiple tags - should return brags with ANY of the tags (OR logic)
-	brags, err = bragRepo.SelectByTags(ctx, userID, []string{"golang", "testing"})
+	brags, err = bragRepo.SelectByTags(ctx, user.ID, []string{"golang", "testing"})
 	require.NoError(t, err)
 	assert.Len(t, brags, 2) // Both brag1 and brag2 have at least one of these tags
 
 	// Search by tag that only one brag has
-	brags, err = bragRepo.SelectByTags(ctx, userID, []string{"testing"})
+	brags, err = bragRepo.SelectByTags(ctx, user.ID, []string{"testing"})
 	require.NoError(t, err)
 	assert.Len(t, brags, 1)
 	assert.Equal(t, "Brag with both tags", brags[0].Title)

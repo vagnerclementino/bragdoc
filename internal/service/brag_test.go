@@ -77,7 +77,11 @@ func TestBragService_Create_Success(t *testing.T) {
 	service := NewBragService(mockRepo)
 
 	brag := &domain.Brag{
-		OwnerID:     1,
+		Owner: domain.User{
+			ID:    1,
+			Name:  "Test User",
+			Email: "test@example.com",
+		},
 		Title:       "Valid Title",
 		Description: "This is a valid description with more than 20 characters",
 		Category:    domain.CategoryAchievement,
@@ -85,8 +89,12 @@ func TestBragService_Create_Success(t *testing.T) {
 	}
 
 	expectedBrag := &domain.Brag{
-		ID:          1,
-		OwnerID:     1,
+		ID: 1,
+		Owner: domain.User{
+			ID:    1,
+			Name:  "Test User",
+			Email: "test@example.com",
+		},
 		Title:       "Valid Title",
 		Description: "This is a valid description with more than 20 characters",
 		Category:    domain.CategoryAchievement,
@@ -114,7 +122,11 @@ func TestBragService_Create_ValidationError_TitleTooShort(t *testing.T) {
 	service := NewBragService(mockRepo)
 
 	brag := &domain.Brag{
-		OwnerID:     1,
+		Owner: domain.User{
+			ID:    1,
+			Name:  "Test User",
+			Email: "test@example.com",
+		},
 		Title:       "Bad", // Too short (< 5 characters)
 		Description: "This is a valid description with more than 20 characters",
 		Category:    domain.CategoryAchievement,
@@ -138,7 +150,11 @@ func TestBragService_Create_ValidationError_DescriptionTooShort(t *testing.T) {
 	service := NewBragService(mockRepo)
 
 	brag := &domain.Brag{
-		OwnerID:     1,
+		Owner: domain.User{
+			ID:    1,
+			Name:  "Test User",
+			Email: "test@example.com",
+		},
 		Title:       "Valid Title",
 		Description: "Too short", // Too short (< 20 characters)
 		Category:    domain.CategoryAchievement,
@@ -162,7 +178,11 @@ func TestBragService_Create_ValidationError_InvalidCategory(t *testing.T) {
 	service := NewBragService(mockRepo)
 
 	brag := &domain.Brag{
-		OwnerID:     1,
+		Owner: domain.User{
+			ID:    1,
+			Name:  "Test User",
+			Email: "test@example.com",
+		},
 		Title:       "Valid Title",
 		Description: "This is a valid description with more than 20 characters",
 		Category:    domain.Category(999), // Invalid category
@@ -194,6 +214,32 @@ func TestBragService_Create_ValidationError_NilBrag(t *testing.T) {
 	mockRepo.AssertNotCalled(t, "Insert")
 }
 
+// TestBragService_Create_ValidationError_InvalidOwnerID tests validation for invalid Owner.ID
+// **Feature: brag-owner-refactor, Property 4: Validation rejects invalid Owner**
+func TestBragService_Create_ValidationError_InvalidOwnerID(t *testing.T) {
+	// Arrange
+	mockRepo := new(MockBragRepository)
+	service := NewBragService(mockRepo)
+
+	brag := &domain.Brag{
+		Owner: domain.User{
+			ID: 0, // Invalid Owner.ID
+		},
+		Title:       "Valid Title",
+		Description: "This is a valid description with more than 20 characters",
+		Category:    domain.CategoryAchievement,
+	}
+
+	// Act
+	created, err := service.Create(context.Background(), brag)
+
+	// Assert
+	assert.Error(t, err)
+	assert.Nil(t, created)
+	assert.Contains(t, err.Error(), "owner ID cannot be empty")
+	mockRepo.AssertNotCalled(t, "Insert")
+}
+
 // TestBragService_Create_ValidationError_EmptyTitle tests validation for empty title
 func TestBragService_Create_ValidationError_EmptyTitle(t *testing.T) {
 	// Arrange
@@ -201,7 +247,11 @@ func TestBragService_Create_ValidationError_EmptyTitle(t *testing.T) {
 	service := NewBragService(mockRepo)
 
 	brag := &domain.Brag{
-		OwnerID:     1,
+		Owner: domain.User{
+			ID:    1,
+			Name:  "Test User",
+			Email: "test@example.com",
+		},
 		Title:       "   ", // Empty after trim
 		Description: "This is a valid description with more than 20 characters",
 		Category:    domain.CategoryAchievement,
@@ -224,7 +274,11 @@ func TestBragService_Create_ValidationError_EmptyDescription(t *testing.T) {
 	service := NewBragService(mockRepo)
 
 	brag := &domain.Brag{
-		OwnerID:     1,
+		Owner: domain.User{
+			ID:    1,
+			Name:  "Test User",
+			Email: "test@example.com",
+		},
 		Title:       "Valid Title",
 		Description: "   ", // Empty after trim
 		Category:    domain.CategoryAchievement,
@@ -247,16 +301,24 @@ func TestBragService_Update_Success(t *testing.T) {
 	service := NewBragService(mockRepo)
 
 	brag := &domain.Brag{
-		ID:          1,
-		OwnerID:     1,
+		ID: 1,
+		Owner: domain.User{
+			ID:    1,
+			Name:  "Test User",
+			Email: "test@example.com",
+		},
 		Title:       "Updated Title",
 		Description: "This is an updated description with more than 20 characters",
 		Category:    domain.CategoryProject,
 	}
 
 	expectedBrag := &domain.Brag{
-		ID:          1,
-		OwnerID:     1,
+		ID: 1,
+		Owner: domain.User{
+			ID:    1,
+			Name:  "Test User",
+			Email: "test@example.com",
+		},
 		Title:       "Updated Title",
 		Description: "This is an updated description with more than 20 characters",
 		Category:    domain.CategoryProject,
@@ -283,8 +345,12 @@ func TestBragService_Update_ValidationError(t *testing.T) {
 	service := NewBragService(mockRepo)
 
 	brag := &domain.Brag{
-		ID:          1,
-		OwnerID:     1,
+		ID: 1,
+		Owner: domain.User{
+			ID:    1,
+			Name:  "Test User",
+			Email: "test@example.com",
+		},
 		Title:       "Bad", // Too short
 		Description: "This is a valid description with more than 20 characters",
 		Category:    domain.CategoryProject,
@@ -307,8 +373,12 @@ func TestBragService_GetByID_Success(t *testing.T) {
 	service := NewBragService(mockRepo)
 
 	expectedBrag := &domain.Brag{
-		ID:          1,
-		OwnerID:     1,
+		ID: 1,
+		Owner: domain.User{
+			ID:    1,
+			Name:  "Test User",
+			Email: "test@example.com",
+		},
 		Title:       "Test Brag",
 		Description: "This is a test brag description",
 		Category:    domain.CategoryAchievement,
@@ -352,15 +422,23 @@ func TestBragService_List_Success(t *testing.T) {
 
 	expectedBrags := []*domain.Brag{
 		{
-			ID:          1,
-			OwnerID:     1,
+			ID: 1,
+			Owner: domain.User{
+				ID:    1,
+				Name:  "Test User",
+				Email: "test@example.com",
+			},
 			Title:       "First Brag",
 			Description: "This is the first brag description",
 			Category:    domain.CategoryAchievement,
 		},
 		{
-			ID:          2,
-			OwnerID:     1,
+			ID: 2,
+			Owner: domain.User{
+				ID:    1,
+				Name:  "Test User",
+				Email: "test@example.com",
+			},
 			Title:       "Second Brag",
 			Description: "This is the second brag description",
 			Category:    domain.CategoryProject,
@@ -390,8 +468,12 @@ func TestBragService_SearchByTags_Success(t *testing.T) {
 	tagNames := []string{"golang", "backend"}
 	expectedBrags := []*domain.Brag{
 		{
-			ID:          1,
-			OwnerID:     1,
+			ID: 1,
+			Owner: domain.User{
+				ID:    1,
+				Name:  "Test User",
+				Email: "test@example.com",
+			},
 			Title:       "Backend Project",
 			Description: "This is a backend project description",
 			Category:    domain.CategoryProject,
@@ -435,8 +517,12 @@ func TestBragService_SearchByCategory_Success(t *testing.T) {
 
 	expectedBrags := []*domain.Brag{
 		{
-			ID:          1,
-			OwnerID:     1,
+			ID: 1,
+			Owner: domain.User{
+				ID:    1,
+				Name:  "Test User",
+				Email: "test@example.com",
+			},
 			Title:       "Achievement Brag",
 			Description: "This is an achievement description",
 			Category:    domain.CategoryAchievement,

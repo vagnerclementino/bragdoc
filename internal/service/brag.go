@@ -26,6 +26,11 @@ func (s *BragService) validateBrag(brag *domain.Brag) error {
 		return errors.New("brag cannot be nil")
 	}
 
+	// Validate Owner
+	if brag.Owner.ID == 0 {
+		return errors.New("brag owner ID cannot be empty")
+	}
+
 	// Structural validations
 	title := strings.TrimSpace(brag.Title)
 	if title == "" {

@@ -5,7 +5,7 @@ import (
 	"github.com/vagnerclementino/bragdoc/internal/service"
 )
 
-func NewBragCmd(bragService *service.BragService, tagService *service.TagService) *cobra.Command {
+func NewBragCmd(bragService *service.BragService, userService *service.UserService, tagService *service.TagService) *cobra.Command {
 	bragCmd := &cobra.Command{
 		Use:   "brag",
 		Short: "Manage your brag entries",
@@ -15,7 +15,7 @@ func NewBragCmd(bragService *service.BragService, tagService *service.TagService
 	}
 
 	bragCmd.AddCommand(
-		NewAddCmd(bragService, tagService),
+		NewAddCmd(bragService, userService, tagService),
 		NewListCmd(bragService, tagService),
 		NewEditCmd(bragService, tagService),
 		NewRemoveCmd(bragService),

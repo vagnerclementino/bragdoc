@@ -37,8 +37,8 @@ func main() {
 	}(db)
 
 	// Initialize repositories
-	bragRepo := repository.NewBragRepository(db.Conn())
 	userRepo := repository.NewUserRepository(db.Conn())
+	bragRepo := repository.NewBragRepository(db.Conn(), userRepo)
 	tagRepo := repository.NewTagRepository(db.Conn())
 
 	// Initialize services

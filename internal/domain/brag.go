@@ -57,7 +57,7 @@ func ParseCategory(s string) (Category, error) {
 // This is a pure data structure with no validation logic
 type Brag struct {
 	ID          int64
-	OwnerID     int64
+	Owner       User
 	Title       string
 	Description string
 	Category    Category

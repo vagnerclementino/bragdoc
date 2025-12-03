@@ -11,13 +11,13 @@ import (
 	"github.com/vagnerclementino/bragdoc/internal/service"
 )
 
-func NewAddCmd(bragService *service.BragService, tagService *service.TagService) *cobra.Command {
+func NewAddCmd(bragService *service.BragService, userService *service.UserService, tagService *service.TagService) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add",
 		Short: "Add a new brag entry",
 		Long:  `Add a new brag entry to document your professional achievements`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runAdd(cmd.Context(), bragService, tagService, cmd)
+			return runAdd(cmd.Context(), bragService, userService, tagService, cmd)
 		},
 	}
 
@@ -34,7 +34,7 @@ func NewAddCmd(bragService *service.BragService, tagService *service.TagService)
 	return cmd
 }
 
-func runAdd(ctx context.Context, bragService *service.BragService, tagService *service.TagService, cmd *cobra.Command) error {
+func runAdd(ctx context.Context, bragService *service.BragService, userService *service.UserService, tagService *service.TagService, cmd *cobra.Command) error {
 	title, _ := cmd.Flags().GetString("title")
 	description, _ := cmd.Flags().GetString("description")
 	categoryStr, _ := cmd.Flags().GetString("category")
@@ -50,9 +50,15 @@ func runAdd(ctx context.Context, bragService *service.BragService, tagService *s
 	// For now, using a default user ID of 1
 	userID := int64(1)
 
+	// Fetch the user to populate Owner
+	user, err := userService.GetByID(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("failed to get user: %w", err)
+	}
+
 	// Create brag
 	newBrag := &domain.Brag{
-		OwnerID:     userID,
+		Owner:       *user,
 		Title:       title,
 		Description: description,
 		Category:    category,

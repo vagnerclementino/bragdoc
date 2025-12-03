@@ -22,13 +22,15 @@ type BragRepository interface {
 }
 
 type bragRepo struct {
-	queries *queries.Queries
+	queries  *queries.Queries
+	userRepo UserRepository
 }
 
 // NewBragRepository creates a new brag repository
-func NewBragRepository(db *sql.DB) BragRepository {
+func NewBragRepository(db *sql.DB, userRepo UserRepository) BragRepository {
 	return &bragRepo{
-		queries: queries.New(db),
+		queries:  queries.New(db),
+		userRepo: userRepo,
 	}
 }
 
@@ -41,7 +43,7 @@ func (r *bragRepo) Select(ctx context.Context, id int64) (*domain.Brag, error) {
 		return nil, fmt.Errorf("failed to get brag: %w", err)
 	}
 
-	return r.toDomainBrag(&dbBrag), nil
+	return r.toDomainBrag(ctx, &dbBrag)
 }
 
 func (r *bragRepo) SelectAll(ctx context.Context, userID int64) ([]*domain.Brag, error) {
@@ -50,9 +52,13 @@ func (r *bragRepo) SelectAll(ctx context.Context, userID int64) ([]*domain.Brag,
 		return nil, fmt.Errorf("failed to list brags: %w", err)
 	}
 
-	brags := make([]*domain.Brag, len(dbBrags))
-	for i, dbBrag := range dbBrags {
-		brags[i] = r.toDomainBrag(&dbBrag)
+	brags := make([]*domain.Brag, 0, len(dbBrags))
+	for _, dbBrag := range dbBrags {
+		brag, err := r.toDomainBrag(ctx, &dbBrag)
+		if err != nil {
+			return nil, err
+		}
+		brags = append(brags, brag)
 	}
 
 	return brags, nil
@@ -67,9 +73,13 @@ func (r *bragRepo) SelectByTags(ctx context.Context, userID int64, tagNames []st
 		return nil, fmt.Errorf("failed to search brags by tags: %w", err)
 	}
 
-	brags := make([]*domain.Brag, len(dbBrags))
-	for i, dbBrag := range dbBrags {
-		brags[i] = r.toDomainBrag(&dbBrag)
+	brags := make([]*domain.Brag, 0, len(dbBrags))
+	for _, dbBrag := range dbBrags {
+		brag, err := r.toDomainBrag(ctx, &dbBrag)
+		if err != nil {
+			return nil, err
+		}
+		brags = append(brags, brag)
 	}
 
 	return brags, nil
@@ -84,9 +94,13 @@ func (r *bragRepo) SelectByCategory(ctx context.Context, userID int64, category 
 		return nil, fmt.Errorf("failed to list brags by category: %w", err)
 	}
 
-	brags := make([]*domain.Brag, len(dbBrags))
-	for i, dbBrag := range dbBrags {
-		brags[i] = r.toDomainBrag(&dbBrag)
+	brags := make([]*domain.Brag, 0, len(dbBrags))
+	for _, dbBrag := range dbBrags {
+		brag, err := r.toDomainBrag(ctx, &dbBrag)
+		if err != nil {
+			return nil, err
+		}
+		brags = append(brags, brag)
 	}
 
 	return brags, nil
@@ -94,7 +108,7 @@ func (r *bragRepo) SelectByCategory(ctx context.Context, userID int64, category 
 
 func (r *bragRepo) Insert(ctx context.Context, brag *domain.Brag) (*domain.Brag, error) {
 	dbBrag, err := r.queries.CreateBrag(ctx, queries.CreateBragParams{
-		OwnerID:     brag.OwnerID,
+		OwnerID:     brag.Owner.ID,
 		Title:       brag.Title,
 		Description: brag.Description,
 		Category:    int64(brag.Category),
@@ -103,7 +117,7 @@ func (r *bragRepo) Insert(ctx context.Context, brag *domain.Brag) (*domain.Brag,
 		return nil, fmt.Errorf("failed to create brag: %w", err)
 	}
 
-	return r.toDomainBrag(&dbBrag), nil
+	return r.toDomainBrag(ctx, &dbBrag)
 }
 
 func (r *bragRepo) Update(ctx context.Context, brag *domain.Brag) (*domain.Brag, error) {
@@ -117,7 +131,7 @@ func (r *bragRepo) Update(ctx context.Context, brag *domain.Brag) (*domain.Brag,
 		return nil, fmt.Errorf("failed to update brag: %w", err)
 	}
 
-	return r.toDomainBrag(&dbBrag), nil
+	return r.toDomainBrag(ctx, &dbBrag)
 }
 
 func (r *bragRepo) Delete(ctx context.Context, id int64) error {
@@ -128,10 +142,19 @@ func (r *bragRepo) Delete(ctx context.Context, id int64) error {
 }
 
 // toDomainBrag converts a database brag to a domain brag
-func (r *bragRepo) toDomainBrag(dbBrag *queries.Brag) *domain.Brag {
+func (r *bragRepo) toDomainBrag(ctx context.Context, dbBrag *queries.Brag) (*domain.Brag, error) {
+	// Fetch the owner user
+	user, err := r.userRepo.Select(ctx, dbBrag.OwnerID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("owner not found for brag %d: %w", dbBrag.ID, err)
+		}
+		return nil, fmt.Errorf("failed to get owner: %w", err)
+	}
+
 	brag := &domain.Brag{
 		ID:          dbBrag.ID,
-		OwnerID:     dbBrag.OwnerID,
+		Owner:       *user,
 		Title:       dbBrag.Title,
 		Description: dbBrag.Description,
 		Category:    domain.Category(dbBrag.Category),
@@ -145,5 +168,5 @@ func (r *bragRepo) toDomainBrag(dbBrag *queries.Brag) *domain.Brag {
 		brag.UpdatedAt = dbBrag.UpdatedAt.Time
 	}
 
-	return brag
+	return brag, nil
 }

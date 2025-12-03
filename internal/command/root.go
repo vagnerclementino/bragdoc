@@ -17,7 +17,7 @@ build their own "Brag Documents" to track and showcase their professional achiev
 	}
 
 	rootCmd.AddCommand(
-		brag.NewBragCmd(bragService, tagService),
+		brag.NewBragCmd(bragService, userService, tagService),
 		tag.NewTagCmd(tagService),
 		doc.NewDocCmd(docService, bragService, tagService),
 		NewInitCmd(),
