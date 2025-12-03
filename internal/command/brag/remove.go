@@ -1,4 +1,4 @@
-package commands
+package brag
 
 import (
 	"bufio"
@@ -13,7 +13,7 @@ import (
 	"github.com/vagnerclementino/bragdoc/internal/service"
 )
 
-func NewBragRemoveCmd(bragService *service.BragService) *cobra.Command {
+func NewRemoveCmd(bragService *service.BragService) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "remove <ids>",
 		Short: "Remove brag entries",
@@ -25,7 +25,7 @@ Supports multiple IDs and ranges:
   - Combined: bragdoc brag remove 1,3,5-8`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runBragRemove(cmd.Context(), bragService, cmd, args)
+			return runRemove(cmd.Context(), bragService, cmd, args)
 		},
 	}
 
@@ -34,9 +34,9 @@ Supports multiple IDs and ranges:
 	return cmd
 }
 
-func runBragRemove(ctx context.Context, bragService *service.BragService, cmd *cobra.Command, args []string) error {
+func runRemove(ctx context.Context, bragService *service.BragService, cmd *cobra.Command, args []string) error {
 	// Parse IDs
-	ids, err := parseIDsFromString(args[0])
+	ids, err := parseIDs(args[0])
 	if err != nil {
 		return fmt.Errorf("failed to parse IDs: %w", err)
 	}
@@ -89,9 +89,9 @@ func runBragRemove(ctx context.Context, bragService *service.BragService, cmd *c
 	return nil
 }
 
-// parseIDsFromString parses a string containing IDs and ranges into a slice of int64
+// parseIDs parses a string containing IDs and ranges into a slice of int64
 // Supports formats like: "1", "1,2,3", "1-5", "1,3,5-8"
-func parseIDsFromString(idsStr string) ([]int64, error) {
+func parseIDs(idsStr string) ([]int64, error) {
 	if idsStr == "" {
 		return nil, fmt.Errorf("no IDs provided")
 	}

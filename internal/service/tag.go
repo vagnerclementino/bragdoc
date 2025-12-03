@@ -2,7 +2,9 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/vagnerclementino/bragdoc/internal/domain"
 	"github.com/vagnerclementino/bragdoc/internal/repository"
@@ -18,9 +20,33 @@ func NewTagService(repo repository.TagRepository) *TagService {
 	return &TagService{repo: repo}
 }
 
+// validateTag performs comprehensive business validation
+func (s *TagService) validateTag(tag *domain.Tag) error {
+	if tag == nil {
+		return errors.New("tag cannot be nil")
+	}
+
+	// Structural validations
+	name := strings.TrimSpace(tag.Name)
+	if name == "" {
+		return errors.New("tag name cannot be empty")
+	}
+
+	// Business validations
+	if len(name) < 2 {
+		return fmt.Errorf("tag name must be at least 2 characters, got %d", len(name))
+	}
+
+	if len(name) > 20 {
+		return fmt.Errorf("tag name cannot exceed 20 characters, got %d", len(name))
+	}
+
+	return nil
+}
+
 // Create creates a new tag with validation
 func (s *TagService) Create(ctx context.Context, tag *domain.Tag) (*domain.Tag, error) {
-	if err := tag.Validate(); err != nil {
+	if err := s.validateTag(tag); err != nil {
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 

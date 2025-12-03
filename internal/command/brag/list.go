@@ -1,4 +1,4 @@
-package commands
+package brag
 
 import (
 	"context"
@@ -14,13 +14,13 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func NewBragListCmd(bragService *service.BragService, tagService *service.TagService) *cobra.Command {
+func NewListCmd(bragService *service.BragService, tagService *service.TagService) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List brag entries",
 		Long:  `List all your documented professional achievements with optional filters`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runBragList(cmd.Context(), bragService, tagService, cmd)
+			return runList(cmd.Context(), bragService, tagService, cmd)
 		},
 	}
 
@@ -32,7 +32,7 @@ func NewBragListCmd(bragService *service.BragService, tagService *service.TagSer
 	return cmd
 }
 
-func runBragList(ctx context.Context, bragService *service.BragService, tagService *service.TagService, cmd *cobra.Command) error {
+func runList(ctx context.Context, bragService *service.BragService, tagService *service.TagService, cmd *cobra.Command) error {
 	categoryStr, _ := cmd.Flags().GetString("category")
 	tagNames, _ := cmd.Flags().GetStringSlice("tags")
 	format, _ := cmd.Flags().GetString("format")

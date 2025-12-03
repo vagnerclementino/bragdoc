@@ -110,9 +110,6 @@ make smoke
 
 # Run integration tests
 go test ./... -v -run Integration
-
-# Run E2E tests
-go test ./cmd/cli/commands -v -run E2E
 ```
 
 ### Troubleshooting

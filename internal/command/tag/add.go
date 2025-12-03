@@ -1,4 +1,4 @@
-package commands
+package tag
 
 import (
 	"context"
@@ -11,13 +11,13 @@ import (
 	"github.com/vagnerclementino/bragdoc/internal/service"
 )
 
-func NewTagAddCmd(tagService *service.TagService) *cobra.Command {
+func NewAddCmd(tagService *service.TagService) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add",
 		Short: "Add a new tag",
 		Long:  `Create a new tag for organizing your brags`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runTagAdd(cmd.Context(), tagService, cmd)
+			return runAdd(cmd.Context(), tagService, cmd)
 		},
 	}
 
@@ -27,7 +27,7 @@ func NewTagAddCmd(tagService *service.TagService) *cobra.Command {
 	return cmd
 }
 
-func runTagAdd(ctx context.Context, tagService *service.TagService, cmd *cobra.Command) error {
+func runAdd(ctx context.Context, tagService *service.TagService, cmd *cobra.Command) error {
 	name, _ := cmd.Flags().GetString("name")
 
 	// Trim and validate name

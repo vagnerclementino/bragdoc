@@ -1,4 +1,4 @@
-package commands
+package doc
 
 import (
 	"github.com/spf13/cobra"
@@ -15,7 +15,7 @@ func NewDocCmd(docService *service.DocumentService, bragService *service.BragSer
 	}
 
 	docCmd.AddCommand(
-		NewDocGenerateCmd(docService, bragService, tagService),
+		NewGenerateCmd(docService, bragService, tagService),
 	)
 
 	return docCmd

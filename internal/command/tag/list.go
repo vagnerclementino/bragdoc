@@ -1,4 +1,4 @@
-package commands
+package tag
 
 import (
 	"context"
@@ -14,13 +14,13 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func NewTagListCmd(tagService *service.TagService) *cobra.Command {
+func NewListCmd(tagService *service.TagService) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List all tags",
 		Long:  `List all tags created by the user`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runTagList(cmd.Context(), tagService, cmd)
+			return runList(cmd.Context(), tagService, cmd)
 		},
 	}
 
@@ -29,7 +29,7 @@ func NewTagListCmd(tagService *service.TagService) *cobra.Command {
 	return cmd
 }
 
-func runTagList(ctx context.Context, tagService *service.TagService, cmd *cobra.Command) error {
+func runList(ctx context.Context, tagService *service.TagService, cmd *cobra.Command) error {
 	format, _ := cmd.Flags().GetString("format")
 
 	// TODO: Get actual user ID from config/session
@@ -48,17 +48,17 @@ func runTagList(ctx context.Context, tagService *service.TagService, cmd *cobra.
 	// Format output
 	switch strings.ToLower(format) {
 	case "json":
-		return outputTagsJSON(tags)
+		return outputJSON(tags)
 	case "yaml":
-		return outputTagsYAML(tags)
+		return outputYAML(tags)
 	case "table":
-		return outputTagsTable(tags)
+		return outputTable(tags)
 	default:
 		return fmt.Errorf("invalid format: %s. Valid options: table, json, yaml", format)
 	}
 }
 
-func outputTagsTable(tags []*domain.Tag) error {
+func outputTable(tags []*domain.Tag) error {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 	fmt.Fprintln(w, "ID\tNAME\tCREATED")
 	fmt.Fprintln(w, "--\t----\t-------")
@@ -74,13 +74,13 @@ func outputTagsTable(tags []*domain.Tag) error {
 	return w.Flush()
 }
 
-func outputTagsJSON(tags []*domain.Tag) error {
+func outputJSON(tags []*domain.Tag) error {
 	encoder := json.NewEncoder(os.Stdout)
 	encoder.SetIndent("", "  ")
 	return encoder.Encode(tags)
 }
 
-func outputTagsYAML(tags []*domain.Tag) error {
+func outputYAML(tags []*domain.Tag) error {
 	encoder := yaml.NewEncoder(os.Stdout)
 	defer encoder.Close()
 	return encoder.Encode(tags)

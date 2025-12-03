@@ -1,4 +1,4 @@
-package commands
+package doc
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"github.com/vagnerclementino/bragdoc/internal/service"
 )
 
-func NewDocGenerateCmd(docService *service.DocumentService, bragService *service.BragService, tagService *service.TagService) *cobra.Command {
+func NewGenerateCmd(docService *service.DocumentService, bragService *service.BragService, tagService *service.TagService) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "generate",
 		Short: "Generate a brag document",
@@ -37,7 +37,7 @@ Examples:
   # Generate with brags having specific tags
   bragdoc doc generate --tags promotion,review`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runDocGenerate(cmd.Context(), docService, bragService, tagService, cmd)
+			return runGenerate(cmd.Context(), docService, bragService, tagService, cmd)
 		},
 	}
 
@@ -52,7 +52,7 @@ Examples:
 	return cmd
 }
 
-func runDocGenerate(ctx context.Context, docService *service.DocumentService, bragService *service.BragService, tagService *service.TagService, cmd *cobra.Command) error {
+func runGenerate(ctx context.Context, docService *service.DocumentService, bragService *service.BragService, tagService *service.TagService, cmd *cobra.Command) error {
 	formatStr, _ := cmd.Flags().GetString("format")
 	output, _ := cmd.Flags().GetString("output")
 	bragIDs, _ := cmd.Flags().GetStringSlice("brags")
@@ -120,8 +120,8 @@ func runDocGenerate(ctx context.Context, docService *service.DocumentService, br
 
 	// Generate document
 	opts := service.GenerateOptions{
-		Format:       format,
-		Template:     template,
+		Format:        format,
+		Template:      template,
 		EnhanceWithAI: enhanceWithAI,
 	}
 

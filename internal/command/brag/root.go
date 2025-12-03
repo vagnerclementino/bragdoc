@@ -1,4 +1,4 @@
-package commands
+package brag
 
 import (
 	"github.com/spf13/cobra"
@@ -15,11 +15,11 @@ func NewBragCmd(bragService *service.BragService, tagService *service.TagService
 	}
 
 	bragCmd.AddCommand(
-		NewBragAddCmd(bragService, tagService),
-		NewBragListCmd(bragService, tagService),
-		NewBragEditCmd(bragService, tagService),
-		NewBragRemoveCmd(bragService),
-		NewBragShowCmd(bragService, tagService),
+		NewAddCmd(bragService, tagService),
+		NewListCmd(bragService, tagService),
+		NewEditCmd(bragService, tagService),
+		NewRemoveCmd(bragService),
+		NewShowCmd(bragService, tagService),
 	)
 
 	return bragCmd

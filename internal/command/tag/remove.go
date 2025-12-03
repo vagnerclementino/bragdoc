@@ -1,4 +1,4 @@
-package commands
+package tag
 
 import (
 	"bufio"
@@ -12,14 +12,14 @@ import (
 	"github.com/vagnerclementino/bragdoc/internal/service"
 )
 
-func NewTagRemoveCmd(tagService *service.TagService) *cobra.Command {
+func NewRemoveCmd(tagService *service.TagService) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "remove <id>",
 		Short: "Remove a tag",
 		Long:  `Remove a tag by ID. This will also remove all associations with brags.`,
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runTagRemove(cmd.Context(), tagService, cmd, args)
+			return runRemove(cmd.Context(), tagService, cmd, args)
 		},
 	}
 
@@ -28,7 +28,7 @@ func NewTagRemoveCmd(tagService *service.TagService) *cobra.Command {
 	return cmd
 }
 
-func runTagRemove(ctx context.Context, tagService *service.TagService, cmd *cobra.Command, args []string) error {
+func runRemove(ctx context.Context, tagService *service.TagService, cmd *cobra.Command, args []string) error {
 	idStr := args[0]
 	confirm, _ := cmd.Flags().GetBool("force")
 

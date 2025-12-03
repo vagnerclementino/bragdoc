@@ -104,7 +104,13 @@ func (m *Manager) Initialize(ctx context.Context, config *Config, format ConfigF
 }
 
 // Load reads the configuration from file
+// Returns an empty config with defaults if not initialized
 func (m *Manager) Load(ctx context.Context) (*Config, error) {
+	// If not initialized, return default config
+	if !m.IsInitialized() {
+		return m.GetDefaultConfig(), nil
+	}
+
 	// Detect configuration file format
 	if err := m.detectConfigFile(); err != nil {
 		return nil, err
@@ -247,8 +253,9 @@ func (m *Manager) setViperConfig(config *Config) error {
 	return nil
 }
 
-// expandHomeDir expands ~ to the user's home directory
-func expandHomeDir(path string) string {
+// ExpandHomeDir expands ~ to the user's home directory
+// This function is exported for testing purposes
+func ExpandHomeDir(path string) string {
 	if !strings.HasPrefix(path, "~") {
 		return path
 	}
@@ -263,4 +270,9 @@ func expandHomeDir(path string) string {
 	}
 
 	return filepath.Join(homeDir, path[2:])
+}
+
+// expandHomeDir is a private wrapper for backward compatibility
+func expandHomeDir(path string) string {
+	return ExpandHomeDir(path)
 }

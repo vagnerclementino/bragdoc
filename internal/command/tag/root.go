@@ -1,4 +1,4 @@
-package commands
+package tag
 
 import (
 	"github.com/spf13/cobra"
@@ -15,9 +15,9 @@ func NewTagCmd(tagService *service.TagService) *cobra.Command {
 	}
 
 	tagCmd.AddCommand(
-		NewTagListCmd(tagService),
-		NewTagAddCmd(tagService),
-		NewTagRemoveCmd(tagService),
+		NewListCmd(tagService),
+		NewAddCmd(tagService),
+		NewRemoveCmd(tagService),
 	)
 
 	return tagCmd

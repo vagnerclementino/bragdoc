@@ -1,4 +1,4 @@
-package commands
+package brag
 
 import (
 	"context"
@@ -11,13 +11,13 @@ import (
 	"github.com/vagnerclementino/bragdoc/internal/service"
 )
 
-func NewBragAddCmd(bragService *service.BragService, tagService *service.TagService) *cobra.Command {
+func NewAddCmd(bragService *service.BragService, tagService *service.TagService) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add",
 		Short: "Add a new brag entry",
 		Long:  `Add a new brag entry to document your professional achievements`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runBragAdd(cmd.Context(), bragService, tagService, cmd)
+			return runAdd(cmd.Context(), bragService, tagService, cmd)
 		},
 	}
 
@@ -34,7 +34,7 @@ func NewBragAddCmd(bragService *service.BragService, tagService *service.TagServ
 	return cmd
 }
 
-func runBragAdd(ctx context.Context, bragService *service.BragService, tagService *service.TagService, cmd *cobra.Command) error {
+func runAdd(ctx context.Context, bragService *service.BragService, tagService *service.TagService, cmd *cobra.Command) error {
 	title, _ := cmd.Flags().GetString("title")
 	description, _ := cmd.Flags().GetString("description")
 	categoryStr, _ := cmd.Flags().GetString("category")
@@ -66,7 +66,7 @@ func runBragAdd(ctx context.Context, bragService *service.BragService, tagServic
 
 	// Handle tags if provided
 	if len(tagNames) > 0 {
-		if err := attachTagsToBrag(ctx, tagService, created.ID, userID, tagNames); err != nil {
+		if err := attachTags(ctx, tagService, created.ID, userID, tagNames); err != nil {
 			fmt.Printf("⚠️  Warning: failed to attach some tags: %v\n", err)
 		}
 	}
@@ -81,8 +81,8 @@ func runBragAdd(ctx context.Context, bragService *service.BragService, tagServic
 	return nil
 }
 
-// attachTagsToBrag handles tag creation and attachment to a brag
-func attachTagsToBrag(ctx context.Context, tagService *service.TagService, bragID int64, userID int64, tagNames []string) error {
+// attachTags handles tag creation and attachment to a brag
+func attachTags(ctx context.Context, tagService *service.TagService, bragID int64, userID int64, tagNames []string) error {
 	var tagIDs []int64
 
 	for _, tagName := range tagNames {

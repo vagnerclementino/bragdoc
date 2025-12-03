@@ -25,10 +25,20 @@ type DB struct {
 
 // New creates a new database connection
 func New(dbPath string) (*DB, error) {
+	// Validate database path
+	if err := validateDatabasePath(dbPath); err != nil {
+		return nil, err
+	}
+
 	// Ensure directory exists
 	dir := filepath.Dir(dbPath)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return nil, fmt.Errorf("failed to create database directory: %w", err)
+	}
+
+	// Verify directory is writable
+	if err := checkWritePermission(dir); err != nil {
+		return nil, fmt.Errorf("database directory is not writable: %w", err)
 	}
 
 	// Open SQLite connection
@@ -47,6 +57,34 @@ func New(dbPath string) (*DB, error) {
 	}
 
 	return db, nil
+}
+
+// validateDatabasePath validates the database path
+func validateDatabasePath(dbPath string) error {
+	if dbPath == "" {
+		return fmt.Errorf("database path cannot be empty")
+	}
+
+	// Check if path is a directory (not allowed)
+	if info, err := os.Stat(dbPath); err == nil && info.IsDir() {
+		return fmt.Errorf("database path cannot be a directory: %s", dbPath)
+	}
+
+	return nil
+}
+
+// checkWritePermission checks if the directory has write permissions
+func checkWritePermission(dir string) error {
+	// Try to create a temporary file to test write permissions
+	testFile := filepath.Join(dir, ".write_test")
+	f, err := os.Create(testFile)
+	if err != nil {
+		return fmt.Errorf("no write permission in directory %s: %w", dir, err)
+	}
+	f.Close()
+	os.Remove(testFile)
+
+	return nil
 }
 
 // Close closes the database connection

@@ -1,23 +1,28 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
-	"github.com/vagnerclementino/bragdoc/cmd/cli/commands"
+	"github.com/vagnerclementino/bragdoc/config"
+	"github.com/vagnerclementino/bragdoc/internal/command"
 	"github.com/vagnerclementino/bragdoc/internal/database"
 	"github.com/vagnerclementino/bragdoc/internal/repository"
 	"github.com/vagnerclementino/bragdoc/internal/service"
 )
 
 func main() {
-	// Setup database path
-	homeDir, err := os.UserHomeDir()
+	// Load configuration (or use defaults)
+	cfg, err := loadConfig()
 	if err != nil {
-		log.Fatalf("failed to get home directory: %v", err)
+		log.Fatalf("failed to load config: %v", err)
 	}
-	dbPath := filepath.Join(homeDir, ".bragdoc", "bragdoc.db")
+
+	// Get database path from config or use default
+	dbPath := getDatabasePath(cfg)
 
 	// Open database connection (without running migrations)
 	db, err := database.New(dbPath)
@@ -43,8 +48,57 @@ func main() {
 	docService := service.NewDocumentService(userService)
 
 	// Create root command with dependencies
-	rootCmd := commands.NewRootCmd(bragService, userService, tagService, docService)
+	rootCmd := command.NewRootCmd(bragService, userService, tagService, docService)
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
+}
+
+// loadConfig loads the configuration from file or returns default config
+func loadConfig() (*config.Config, error) {
+	mgr := config.NewManager()
+	cfg, err := mgr.Load(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	return cfg, nil
+}
+
+// getDatabasePath returns the database path from config or default
+func getDatabasePath(cfg *config.Config) string {
+	// Use config path if available
+	if cfg.Database.Path != "" {
+		return expandPath(cfg.Database.Path)
+	}
+
+	// Use default path
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		// Fallback to current directory if home is not available
+		homeDir = "."
+	}
+	return filepath.Join(homeDir, ".bragdoc", "bragdoc.db")
+}
+
+// expandPath expands ~ to the user's home directory
+func expandPath(path string) string {
+	if !strings.HasPrefix(path, "~") {
+		return path
+	}
+
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return path
+	}
+
+	if path == "~" {
+		return homeDir
+	}
+
+	// Handle ~/path
+	if strings.HasPrefix(path, "~/") {
+		return filepath.Join(homeDir, path[2:])
+	}
+
+	return path
 }

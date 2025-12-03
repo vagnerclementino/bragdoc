@@ -1,4 +1,4 @@
-package commands
+package brag
 
 import (
 	"context"
@@ -11,14 +11,14 @@ import (
 	"github.com/vagnerclementino/bragdoc/internal/service"
 )
 
-func NewBragEditCmd(bragService *service.BragService, tagService *service.TagService) *cobra.Command {
+func NewEditCmd(bragService *service.BragService, tagService *service.TagService) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "edit <id>",
 		Short: "Edit an existing brag entry",
 		Long:  `Edit an existing brag entry by ID`,
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runBragEdit(cmd.Context(), bragService, tagService, cmd, args)
+			return runEdit(cmd.Context(), bragService, tagService, cmd, args)
 		},
 	}
 
@@ -31,7 +31,7 @@ func NewBragEditCmd(bragService *service.BragService, tagService *service.TagSer
 	return cmd
 }
 
-func runBragEdit(ctx context.Context, bragService *service.BragService, tagService *service.TagService, cmd *cobra.Command, args []string) error {
+func runEdit(ctx context.Context, bragService *service.BragService, tagService *service.TagService, cmd *cobra.Command, args []string) error {
 	// Parse brag ID
 	id, err := strconv.ParseInt(args[0], 10, 64)
 	if err != nil {
@@ -97,7 +97,7 @@ func runBragEdit(ctx context.Context, bragService *service.BragService, tagServi
 		if len(tagNames) > 0 {
 			// TODO: Get actual user ID from config/session
 			userID := int64(1)
-			if err := attachTagsToBrag(ctx, tagService, brag.ID, userID, tagNames); err != nil {
+			if err := attachTags(ctx, tagService, brag.ID, userID, tagNames); err != nil {
 				fmt.Printf("⚠️  Warning: failed to attach tags: %v\n", err)
 			}
 		}

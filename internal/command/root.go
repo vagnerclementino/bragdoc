@@ -1,7 +1,10 @@
-package commands
+package command
 
 import (
 	"github.com/spf13/cobra"
+	"github.com/vagnerclementino/bragdoc/internal/command/brag"
+	"github.com/vagnerclementino/bragdoc/internal/command/doc"
+	"github.com/vagnerclementino/bragdoc/internal/command/tag"
 	"github.com/vagnerclementino/bragdoc/internal/service"
 )
 
@@ -14,9 +17,9 @@ build their own "Brag Documents" to track and showcase their professional achiev
 	}
 
 	rootCmd.AddCommand(
-		NewBragCmd(bragService, tagService),
-		NewTagCmd(tagService),
-		NewDocCmd(docService, bragService, tagService),
+		brag.NewBragCmd(bragService, tagService),
+		tag.NewTagCmd(tagService),
+		doc.NewDocCmd(docService, bragService, tagService),
 		NewInitCmd(),
 		NewVersionCmd(),
 	)

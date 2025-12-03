@@ -1,4 +1,4 @@
-package commands
+package brag
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"github.com/vagnerclementino/bragdoc/internal/service"
 )
 
-func NewBragShowCmd(bragService *service.BragService, tagService *service.TagService) *cobra.Command {
+func NewShowCmd(bragService *service.BragService, tagService *service.TagService) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "show <ids>",
 		Short: "Show detailed information about brag entries",
@@ -22,16 +22,16 @@ Supports multiple IDs and ranges:
   - Range: bragdoc brag show 1-5`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runBragShow(cmd.Context(), bragService, tagService, args)
+			return runShow(cmd.Context(), bragService, tagService, args)
 		},
 	}
 
 	return cmd
 }
 
-func runBragShow(ctx context.Context, bragService *service.BragService, tagService *service.TagService, args []string) error {
+func runShow(ctx context.Context, bragService *service.BragService, tagService *service.TagService, args []string) error {
 	// Parse IDs
-	ids, err := parseIDsFromString(args[0])
+	ids, err := parseIDs(args[0])
 	if err != nil {
 		return fmt.Errorf("failed to parse IDs: %w", err)
 	}
