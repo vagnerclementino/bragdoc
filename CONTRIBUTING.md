@@ -167,26 +167,79 @@ make quality
 
 ## Testing
 
-### Unit Tests
+Bragdoc uses a combination of unit tests and integration tests with golden files.
 
-Write unit tests for all new functionality:
+### Running Tests
 
 ```bash
 # Run all tests
 make test
 
-# Run tests with coverage
-make test
+# Run with coverage report
+make test-coverage
 
-# Run tests for a specific package
-go test ./internal/service/...
+# Run only unit tests (fast)
+make test-unit
+
+# Update golden files (when CLI output changes)
+make update-golden
 ```
+
+### Test Structure
+
+- **Unit Tests**: Test individual functions and components in isolation
+- **Integration Tests**: Test the CLI application end-to-end using golden files
+
+### Integration Testing with Golden Files
+
+Integration tests build a test binary and run it like a real user would:
+
+```go
+func TestCLIVersion(t *testing.T) {
+    output, err := runBinary([]string{"version"}, nil)
+    if err != nil {
+        t.Fatal(err)
+    }
+
+    if *update {
+        writeFixture(t, "version.golden", output)
+    }
+
+    actual := string(output)
+    expected := loadFixture(t, "version.golden")
+
+    if !reflect.DeepEqual(actual, expected) {
+        t.Fatalf("actual = %s, expected = %s", actual, expected)
+    }
+}
+```
+
+Golden files are stored in `testdata/golden/` and contain expected CLI outputs.
+
+### Adding New Integration Tests
+
+1. Add test function in `cmd/cli/main_test.go`
+2. Run with `-update` flag to generate golden file:
+   ```bash
+   go test ./cmd/cli -update
+   ```
+3. Review the generated golden file
+4. Run tests normally to verify:
+   ```bash
+   make test
+   ```
 
 ### Test Coverage Goals
 
+- **CLI Package**: Minimum 60% coverage
 - **Services**: Minimum 80% coverage
-- **Repositories**: Minimum 80% coverage
-- **Domain**: Minimum 70% coverage
+- **Commands**: Minimum 65% coverage
+- **Database**: Minimum 45% coverage
+
+Current coverage can be checked with:
+```bash
+make test-coverage
+```
 
 ### Writing Tests
 
@@ -194,8 +247,9 @@ go test ./internal/service/...
 - Mock external dependencies using interfaces
 - Test both success and error cases
 - Use descriptive test names
+- Keep golden files small and focused
 
-Example:
+Example unit test:
 
 ```go
 func TestBragService_Create_Success(t *testing.T) {
@@ -210,6 +264,16 @@ func TestBragService_Create_Success(t *testing.T) {
     assert.NoError(t, err)
     assert.NotNil(t, result)
 }
+```
+
+### Updating Golden Files
+
+When you intentionally change CLI output:
+
+```bash
+make update-golden
+git diff testdata/golden/  # Review changes
+make test                  # Verify tests pass
 ```
 
 ## Smoke Testing

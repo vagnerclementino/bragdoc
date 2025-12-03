@@ -1,0 +1,14 @@
+Error: bragdoc is not initialized. Please run 'bragdoc init' first.
+
+Example:
+  bragdoc init --name "Your Name" --email "your.email@example.com"
+Usage:
+  bragdoc brag list [flags]
+
+Flags:
+  -c, --category string   Filter by category (project|achievement|skill|leadership|innovation)
+  -f, --format string     Output format (table|json|yaml) (default "table")
+  -h, --help              help for list
+  -l, --limit int         Maximum number of results (default 50)
+  -t, --tags strings      Filter by tags (comma-separated)
+

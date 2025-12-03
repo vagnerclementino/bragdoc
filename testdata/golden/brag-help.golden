@@ -1,0 +1,16 @@
+Create, list and manage your professional achievements
+
+Usage:
+  bragdoc brag [command]
+
+Available Commands:
+  add         Add a new brag entry
+  edit        Edit an existing brag entry
+  list        List brag entries
+  remove      Remove brag entries
+  show        Show detailed information about brag entries
+
+Flags:
+  -h, --help   help for brag
+
+Use "bragdoc brag [command] --help" for more information about a command.

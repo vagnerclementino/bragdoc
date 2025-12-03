@@ -34,6 +34,7 @@ bragdoc
 
 #Test
 coverage.txt
+.coverdata/
 
 .idea/
 

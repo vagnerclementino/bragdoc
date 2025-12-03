@@ -1,0 +1,14 @@
+Create, list and manage tags to categorize your professional achievements
+
+Usage:
+  bragdoc tag [command]
+
+Available Commands:
+  add         Add a new tag
+  list        List all tags
+  remove      Remove a tag
+
+Flags:
+  -h, --help   help for tag
+
+Use "bragdoc tag [command] --help" for more information about a command.
