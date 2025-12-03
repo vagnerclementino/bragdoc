@@ -35,15 +35,34 @@ performance reviews.
 
 ## Getting Started
 
-To get started with Bragdoc, follow these simple steps:
+Ready to start documenting your achievements? Check out our comprehensive guides:
 
-1. **Installation**: Install Bragdoc by running for this repository.
+- **[Getting Started Guide](GETTING_STARTED.md)** - Complete walkthrough for new users
+- **[Contributing Guide](CONTRIBUTING.md)** - Learn how to contribute to the project
 
-2. **Usage**: Use the `bragdoc` command to interact with the tool and start documenting your achievements.
+### Quick Start
 
-3. **Templates**: Explore the available templates and customize them to match your style and preferences.
+1. **Build from source**:
+   ```bash
+   git clone https://github.com/vagnerclementino/bragdoc.git
+   cd bragdoc
+   make build
+   ```
 
-4. **Export**: Generate your Brag Document and share it with confidence during performance reviews.
+2. **Initialize**:
+   ```bash
+   ./bragdoc init --name "Your Name" --email "your@email.com"
+   ```
+
+3. **Add your first achievement**:
+   ```bash
+   ./bragdoc brag add \
+     --title "Your Achievement" \
+     --description "What you accomplished and its impact" \
+     --category achievement
+   ```
+
+For detailed instructions, see the [Getting Started Guide](GETTING_STARTED.md).
 
 ## Used Stack
 
@@ -63,11 +82,22 @@ We maintain Architecture Decision Records (ADRs) to transparently document and
 communicate significant project decisions. You can find the ADRs in the
 [docs/adr](docs/adr) directory of this repository.
 
-## Contribution
+## Contributing
 
-We welcome contributions from the community! If you have ideas, bug reports, or
-feature requests, please [open an issue](https://github.com/vagnerclementino/bragdoc/issues)
-or submit a pull request.
+We welcome contributions from the community! Whether you want to:
+
+- Report a bug
+- Suggest a new feature
+- Improve documentation
+- Submit code changes
+
+Please read our [Contributing Guide](CONTRIBUTING.md) to get started.
+
+### Quick Links
+
+- [Report an Issue](https://github.com/vagnerclementino/bragdoc/issues)
+- [Contributing Guidelines](CONTRIBUTING.md)
+- [Architecture Decision Records](docs/adr)
 
 ## License
 
