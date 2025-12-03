@@ -10,7 +10,6 @@ import (
 	"github.com/vagnerclementino/bragdoc/config"
 	"github.com/vagnerclementino/bragdoc/internal/command"
 	"github.com/vagnerclementino/bragdoc/internal/database"
-	"github.com/vagnerclementino/bragdoc/internal/repository"
 	"github.com/vagnerclementino/bragdoc/internal/service"
 )
 
@@ -36,10 +35,13 @@ func main() {
 		}
 	}(db)
 
+	// Create SQLiteDB wrapper
+	sqliteDB := database.NewSQLiteDB(db.Conn())
+
 	// Initialize repositories
-	userRepo := repository.NewUserRepository(db.Conn())
-	bragRepo := repository.NewBragRepository(db.Conn(), userRepo)
-	tagRepo := repository.NewTagRepository(db.Conn())
+	userRepo := database.NewUserRepository(sqliteDB)
+	bragRepo := database.NewBragRepository(sqliteDB, userRepo)
+	tagRepo := database.NewTagRepository(sqliteDB)
 
 	// Initialize services
 	bragService := service.NewBragService(bragRepo)
