@@ -66,15 +66,12 @@ func loadConfig() (*config.Config, error) {
 
 // getDatabasePath returns the database path from config or default
 func getDatabasePath(cfg *config.Config) string {
-	// Use config path if available
 	if cfg.Database.Path != "" {
 		return expandPath(cfg.Database.Path)
 	}
 
-	// Use default path
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		// Fallback to current directory if home is not available
 		homeDir = "."
 	}
 	return filepath.Join(homeDir, ".bragdoc", "bragdoc.db")
@@ -95,7 +92,6 @@ func expandPath(path string) string {
 		return homeDir
 	}
 
-	// Handle ~/path
 	if strings.HasPrefix(path, "~/") {
 		return filepath.Join(homeDir, path[2:])
 	}

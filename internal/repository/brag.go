@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/vagnerclementino/bragdoc/internal/database/queries"
@@ -34,7 +35,7 @@ func NewBragRepository(db *sql.DB) BragRepository {
 func (r *bragRepo) Select(ctx context.Context, id int64) (*domain.Brag, error) {
 	dbBrag, err := r.queries.GetBrag(ctx, id)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf("brag not found: %d", id)
 		}
 		return nil, fmt.Errorf("failed to get brag: %w", err)

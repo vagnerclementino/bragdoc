@@ -49,7 +49,7 @@ We will adopt **Clean Architecture** (also known as Hexagonal Architecture or Po
    - Database connections, file I/O
    - External service integrations
 
-5. **Interface Layer** (`cmd/`, `internal/handler/`)
+5. **Interface Layer** (`cmd/`, `internal/command/`)
    - CLI commands, TUI screens, Web handlers
    - Depends on use cases, not implementations
    - Multiple interfaces share same business logic

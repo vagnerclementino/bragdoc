@@ -2,16 +2,23 @@ package repository
 
 import (
 	"context"
+	"log"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/vagnerclementino/bragdoc/internal/database"
 	"github.com/vagnerclementino/bragdoc/internal/domain"
 )
 
 func TestUserRepository_Insert(t *testing.T) {
 	db := setupTestDB(t)
-	defer db.Close()
+	defer func(db *database.DB) {
+		err := db.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(db)
 
 	repo := NewUserRepository(db.Conn())
 	ctx := context.Background()
@@ -37,7 +44,12 @@ func TestUserRepository_Insert(t *testing.T) {
 
 func TestUserRepository_Select(t *testing.T) {
 	db := setupTestDB(t)
-	defer db.Close()
+	defer func(db *database.DB) {
+		err := db.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(db)
 
 	repo := NewUserRepository(db.Conn())
 	ctx := context.Background()
@@ -65,7 +77,12 @@ func TestUserRepository_Select(t *testing.T) {
 
 func TestUserRepository_Select_NotFound(t *testing.T) {
 	db := setupTestDB(t)
-	defer db.Close()
+	defer func(db *database.DB) {
+		err := db.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(db)
 
 	repo := NewUserRepository(db.Conn())
 	ctx := context.Background()
@@ -78,7 +95,12 @@ func TestUserRepository_Select_NotFound(t *testing.T) {
 
 func TestUserRepository_SelectByEmail(t *testing.T) {
 	db := setupTestDB(t)
-	defer db.Close()
+	defer func(db *database.DB) {
+		err := db.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(db)
 
 	repo := NewUserRepository(db.Conn())
 	ctx := context.Background()
@@ -103,7 +125,12 @@ func TestUserRepository_SelectByEmail(t *testing.T) {
 
 func TestUserRepository_SelectByEmail_NotFound(t *testing.T) {
 	db := setupTestDB(t)
-	defer db.Close()
+	defer func(db *database.DB) {
+		err := db.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(db)
 
 	repo := NewUserRepository(db.Conn())
 	ctx := context.Background()
@@ -116,7 +143,12 @@ func TestUserRepository_SelectByEmail_NotFound(t *testing.T) {
 
 func TestUserRepository_SelectAll(t *testing.T) {
 	db := setupTestDB(t)
-	defer db.Close()
+	defer func(db *database.DB) {
+		err := db.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(db)
 
 	repo := NewUserRepository(db.Conn())
 	ctx := context.Background()
