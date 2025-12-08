@@ -1,4 +1,4 @@
-.PHONY: test test-unit test-integration test-coverage update-golden clean build
+.PHONY: test test-unit test-integration test-coverage update-golden clean build smoke
 
 # Run all tests
 test: build-with-coverage
@@ -25,6 +25,11 @@ test-coverage: test
 update-golden:
 	@echo "Updating golden files..."
 	@go test ./cmd/cli -update
+
+# Run smoke tests
+smoke: build
+	@echo "🔥 Running smoke tests..."
+	@./smoke.sh
 
 # Clean build artifacts and coverage data
 clean:
