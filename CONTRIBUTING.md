@@ -141,7 +141,7 @@ Bragdoc follows Clean Architecture principles:
 1. **Domain Entities**: Pure data structures with no business logic
 2. **Service Layer**: Contains all business validations and logic
 3. **Repository Layer**: Handles data persistence only
-4. **Command Layer**: CLI interface and user interaction
+4. **Command Layer**: CLI and user interaction
 5. **Dependency Injection**: Services receive dependencies via constructors
 
 ### Code Quality
@@ -399,7 +399,9 @@ Describe the consequences...
 make build          # Build the binary
 make run            # Build and run
 make clean          # Remove build artifacts
-make install        # Install to /usr/local/bin
+sudo make install   # Install to /usr/local/bin (requires sudo)
+make package        # Create zip and tar.gz packages
+make release VERSION=v1.0.0  # Create and push release tag
 ```
 
 ### Quality Commands
@@ -407,18 +409,97 @@ make install        # Install to /usr/local/bin
 ```bash
 make test           # Run tests with coverage
 make test-race      # Test for race conditions
-make lint           # Run golangci-lint
+make lint           # Run golangci-lint (auto-installs if needed)
 make fmt            # Format code
 make vet            # Run go vet
 make imports        # Run goimports
-make quality        # Run all quality checks
+make quality        # Run all quality checks (test, test-race, fmt, vet, imports, lint)
+make smoke          # Run smoke tests
 ```
 
-### Packaging Commands
+### Helper Commands
 
 ```bash
-make package        # Create distribution packages
-make tidy           # Clean up dependencies
+make generate       # Generate SQLC code
+make tidy           # Clean up go.mod dependencies
+make update-golden  # Update golden test files
+make help           # Show all available targets with descriptions
+```
+
+### Quick Development Workflow
+
+```bash
+# Start development
+make clean          # Clean previous builds
+make generate       # Generate code
+make quality        # Run all quality checks
+make smoke          # Run smoke tests
+make build          # Build final binary
+```
+
+## CI/CD Pipelines
+
+### Quality Pipeline
+
+Runs automatically on every push and pull request to `main`:
+
+- **Trigger**: Push to main or PR
+- **Runner**: ubuntu-latest
+- **Go Version**: 1.25
+- **Steps**:
+  1. Checkout code
+  2. Setup Go environment
+  3. Verify go.mod is tidy
+  4. Run golangci-lint
+  5. Run tests with coverage
+  6. Upload coverage to Codecov
+
+### Docs Pipeline
+
+Runs automatically on PRs that modify command files:
+
+- **Trigger**: PR with changes to `internal/command/**` or `cmd/cli/**`
+- **Runner**: ubuntu-latest
+- **Go Version**: 1.25
+- **Steps**:
+  1. Checkout PR branch
+  2. Setup Go environment
+  3. Run `./generate_docs.sh`
+  4. Commit updated docs to PR branch
+  5. Push changes automatically
+
+**Manual Generation**:
+```bash
+./generate_docs.sh
+```
+
+### Release Pipeline
+
+Runs automatically when a git tag is pushed:
+
+- **Trigger**: Git tag push (e.g., `v1.0.0`)
+- **Platforms**: 3 parallel builds
+  - macOS Intel (darwin/amd64)
+  - macOS ARM (darwin/arm64)
+  - Linux (linux/amd64)
+- **Steps**:
+  1. Checkout code
+  2. Setup Go environment
+  3. Extract version from tag
+  4. Build platform-specific binary
+  5. Create compressed package
+  6. Upload to GitHub Release
+
+**Creating a Release**:
+```bash
+# Using make target (recommended)
+make release VERSION=v1.0.0
+
+# Manual method
+git tag v1.0.0
+git push origin v1.0.0
+
+# GitHub Actions will automatically build and create the release
 ```
 
 ## Getting Help

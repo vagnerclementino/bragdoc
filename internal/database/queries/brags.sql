@@ -2,10 +2,10 @@
 SELECT * FROM brags WHERE id = ? LIMIT 1;
 
 -- name: ListBragsByUser :many
-SELECT * FROM brags WHERE owner_id = ? ORDER BY created_at DESC;
+SELECT * FROM brags WHERE owner_id = ? ORDER BY created_at;
 
 -- name: ListBragsByCategory :many
-SELECT * FROM brags WHERE owner_id = ? AND category = ? ORDER BY created_at DESC;
+SELECT * FROM brags WHERE owner_id = ? AND category = ? ORDER BY created_at;
 
 -- name: CreateBrag :one
 INSERT INTO brags (owner_id, title, description, category, created_at)

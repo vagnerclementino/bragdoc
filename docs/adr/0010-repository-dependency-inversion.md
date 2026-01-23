@@ -32,7 +32,7 @@ We will separate repository interfaces from their implementations:
 - Data mapping logic
 
 **Structure:**
-```
+```text
 internal/
 ├── repository/
 │   ├── user.go          # UserRepository interface

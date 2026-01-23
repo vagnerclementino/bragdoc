@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 
 	"github.com/spf13/cobra"
 	"github.com/vagnerclementino/bragdoc/config"
@@ -38,10 +39,8 @@ func NewInitCmd() *cobra.Command {
 func runInit(ctx context.Context, cmd *cobra.Command) error {
 	fmt.Println("🚀 Initializing Bragdoc...")
 
-	// Create config manager
 	configManager := config.NewManager()
 
-	// Check if already initialized
 	if configManager.IsInitialized() {
 		fmt.Println("⚠️  Bragdoc is already initialized!")
 		fmt.Printf("📁 Configuration: %s\n", configManager.GetConfigPath())
@@ -56,33 +55,32 @@ func runInit(ctx context.Context, cmd *cobra.Command) error {
 	company, _ := cmd.Flags().GetString("company")
 	locale, _ := cmd.Flags().GetString("locale")
 
-	// Validate locale before proceeding
 	if locale != "en-US" && locale != "pt-BR" {
 		return fmt.Errorf("invalid locale: %s (supported: en-US, pt-BR)", locale)
 	}
 
-	// Generate default configuration (user data will be stored in database)
 	defaultConfig := configManager.GetDefaultConfig()
 
-	// Create configuration file (YAML only in v1)
 	if err := configManager.Initialize(ctx, defaultConfig, config.FormatYAML); err != nil {
 		return fmt.Errorf("failed to create config: %w", err)
 	}
 
-	// Setup database
 	dbPath := configManager.GetDatabasePath()
 	db, err := database.New(dbPath)
 	if err != nil {
 		return fmt.Errorf("failed to create database: %w", err)
 	}
-	defer db.Close()
+	defer func(db *database.DB) {
+		err := db.Close()
+		if err != nil {
+			log.Fatal("failed to close database connection: %w", err)
+		}
+	}(db)
 
-	// Run migrations
 	if err := db.Migrate(ctx); err != nil {
 		return fmt.Errorf("failed to setup database: %w", err)
 	}
 
-	// Create user in database
 	q := queries.New(db.Conn())
 	createdUser, err := q.CreateUser(ctx, queries.CreateUserParams{
 		Name:     name,

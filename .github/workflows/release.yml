@@ -1,0 +1,121 @@
+---
+name: release
+
+on:
+  push:
+    tags:
+      - '*'
+
+concurrency: pipeline-production
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos-intel:
+    runs-on: macos-latest
+    env:
+      GOOS: darwin
+      GOARCH: amd64
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        name: checkout
+
+      - uses: actions/setup-go@v5
+        name: setup-go
+        with:
+          go-version: '1.25'
+
+      - name: Set envs
+        run: |
+          echo "BUILD=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_ENV
+          echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+
+      - name: Check go mod
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod
+
+      - name: Building binary
+        run: |
+          echo "Generating the version $VERSION from build $BUILD"
+          go mod tidy
+          go build -o bragdoc-macos-intel -ldflags "-X 'github.com/vagnerclementino/bragdoc/internal/command.Version=$VERSION' -X 'github.com/vagnerclementino/bragdoc/internal/command.Build=$BUILD'" ./cmd/cli
+
+      - name: Upload binary
+        run: |
+          zip -j bragdoc-macos-intel-${{ github.ref_name }}.zip bragdoc-macos-intel
+          gh release upload "${{ github.ref_name }}" bragdoc-macos-intel-${{ github.ref_name }}.zip
+
+  build-macos-arm:
+    runs-on: macos-latest
+    env:
+      GOOS: darwin
+      GOARCH: arm64
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        name: checkout
+
+      - uses: actions/setup-go@v5
+        name: setup-go
+        with:
+          go-version: '1.25'
+
+      - name: Set envs
+        run: |
+          echo "BUILD=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_ENV
+          echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+
+      - name: Check go mod
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod
+
+      - name: Building binary
+        run: |
+          echo "Generating the version $VERSION from build $BUILD"
+          go mod tidy
+          go build -o bragdoc-macos-arm -ldflags "-X 'github.com/vagnerclementino/bragdoc/internal/command.Version=$VERSION' -X 'github.com/vagnerclementino/bragdoc/internal/command.Build=$BUILD'" ./cmd/cli
+
+      - name: Upload binary
+        run: |
+          zip -j bragdoc-macos-arm-${{ github.ref_name }}.zip bragdoc-macos-arm
+          gh release upload "${{ github.ref_name }}" bragdoc-macos-arm-${{ github.ref_name }}.zip
+
+  build-linux:
+    runs-on: ubuntu-latest
+    env:
+      GOOS: linux
+      GOARCH: amd64
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        name: checkout
+
+      - uses: actions/setup-go@v5
+        name: setup-go
+        with:
+          go-version: '1.25'
+
+      - name: Set envs
+        run: |
+          echo "BUILD=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_ENV
+          echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+
+      - name: Check go mod
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod
+
+      - name: Building binary
+        run: |
+          echo "Generating the version $VERSION from build $BUILD"
+          go mod tidy
+          go build -o bragdoc-linux -ldflags "-X 'github.com/vagnerclementino/bragdoc/internal/command.Version=$VERSION' -X 'github.com/vagnerclementino/bragdoc/internal/command.Build=$BUILD'" ./cmd/cli
+
+      - name: Upload binary
+        run: |
+          tar czf bragdoc-linux-${{ github.ref_name }}.tar.gz bragdoc-linux
+          gh release upload "${{ github.ref_name }}" bragdoc-linux-${{ github.ref_name }}.tar.gz

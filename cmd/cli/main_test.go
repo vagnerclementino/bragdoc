@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -57,6 +56,7 @@ func TestMain(m *testing.M) {
 
 	// Cleanup
 	os.Remove(binaryPath)
+	os.RemoveAll(".coverdata")
 
 	os.Exit(code)
 }
@@ -205,7 +205,7 @@ func TestCLIVersion(t *testing.T) {
 	actual := string(output)
 	expected := loadFixture(t, "version.golden")
 
-	if !reflect.DeepEqual(actual, expected) {
+	if actual != expected {
 		t.Fatalf("actual = %s, expected = %s", actual, expected)
 	}
 }
@@ -235,7 +235,7 @@ func TestCLIHelp(t *testing.T) {
 			actual := string(output)
 			expected := loadFixture(t, tt.fixture)
 
-			if !reflect.DeepEqual(actual, expected) {
+			if actual != expected {
 				t.Fatalf("actual = %s, expected = %s", actual, expected)
 			}
 		})
@@ -266,7 +266,7 @@ func TestCLIRequiresInit(t *testing.T) {
 			actual := string(output)
 			expected := loadFixture(t, tt.fixture)
 
-			if !reflect.DeepEqual(actual, expected) {
+			if actual != expected {
 				t.Fatalf("actual = %s, expected = %s", actual, expected)
 			}
 		})

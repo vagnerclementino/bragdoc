@@ -24,8 +24,12 @@ func NewAddCmd(bragService *service.BragService, userService *service.UserServic
 	// Required flags
 	cmd.Flags().StringP("title", "t", "", "Brag title (required)")
 	cmd.Flags().StringP("description", "d", "", "Brag description (required)")
-	cmd.MarkFlagRequired("title")
-	cmd.MarkFlagRequired("description")
+	if err := cmd.MarkFlagRequired("title"); err != nil {
+		panic(fmt.Sprintf("failed to mark title flag as required: %v", err))
+	}
+	if err := cmd.MarkFlagRequired("description"); err != nil {
+		panic(fmt.Sprintf("failed to mark description flag as required: %v", err))
+	}
 
 	// Optional flags
 	cmd.Flags().StringP("category", "c", "achievement", "Brag category (project|achievement|skill|leadership|innovation)")

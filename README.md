@@ -39,6 +39,7 @@ Ready to start documenting your achievements? Check out our comprehensive guides
 
 - **[Getting Started Guide](GETTING_STARTED.md)** - Complete walkthrough for new users
 - **[Contributing Guide](CONTRIBUTING.md)** - Learn how to contribute to the project
+- **[Makefile Guide](docs/MAKEFILE.md)** - Detailed guide for all Make targets and workflows
 
 ### Quick Start
 
@@ -63,6 +64,64 @@ Ready to start documenting your achievements? Check out our comprehensive guides
    ```
 
 For detailed instructions, see the [Getting Started Guide](GETTING_STARTED.md).
+
+## Development
+
+### Available Make Targets
+
+Run `make help` to see all available targets organized by category:
+
+```bash
+make help
+```
+
+For detailed information about all Make targets, workflows, and best practices, see the [Makefile Guide](docs/MAKEFILE.md).
+
+#### Application Targets
+- `make build` - Build the application binary
+- `make run` - Build and run the application
+- `make clean` - Clean binary and artifacts
+- `make install` - Install to /usr/local/bin (requires sudo)
+- `make package` - Create distribution packages (zip, tar.gz)
+- `make release VERSION=v1.0.0` - Create and push a new release tag
+
+#### Quality Targets
+- `make test` - Run tests with coverage
+- `make test-race` - Validate race conditions
+- `make lint` - Check coding style
+- `make fmt` - Format code with go fmt
+- `make vet` - Run go vet
+- `make imports` - Organize imports with goimports
+- `make quality` - Run all quality checks
+- `make smoke` - Run smoke tests
+
+#### Helper Targets
+- `make generate` - Generate SQLC code
+- `make tidy` - Clean up go.mod
+- `make update-golden` - Update golden test files
+
+### CI/CD Pipelines
+
+The project uses GitHub Actions for continuous integration:
+
+- **Quality Pipeline** - Runs on every push/PR to main
+  - Go 1.25
+  - Linting with golangci-lint
+  - Tests with coverage
+  - Coverage upload to Codecov
+
+- **Docs Pipeline** - Runs on PRs that change commands
+  - Automatically generates CLI documentation
+  - Updates `docs/commands/` with latest help text
+  - Commits changes back to PR branch
+
+- **Release Pipeline** - Runs on git tags
+  - Builds for 3 platforms:
+    - macOS Intel (darwin/amd64)
+    - macOS ARM (darwin/arm64)
+    - Linux (linux/amd64)
+  - Automatic GitHub Release creation
+  - Binary uploads with version info
 
 ## Used Stack
 

@@ -64,14 +64,14 @@ func (l Locale) GetLocaleName() string {
 func ParseLocale(s string) (Locale, error) {
 	// Normalize: convert to lowercase, trim spaces
 	normalized := strings.ToLower(strings.TrimSpace(s))
-	
+
 	// Try to match with supported locales (case-insensitive)
 	for _, locale := range SupportedLocales() {
 		if strings.ToLower(string(locale)) == normalized {
 			return locale, nil
 		}
 	}
-	
+
 	return "", fmt.Errorf("unsupported locale: %s (supported: %s)", s, SupportedLocalesString())
 }
 

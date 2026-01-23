@@ -10,7 +10,7 @@ import (
 type Category int
 
 const (
-	CategoryUnknown Category = iota
+	CategoryUnknown Category = iota + 1
 	CategoryProject
 	CategoryAchievement
 	CategorySkill

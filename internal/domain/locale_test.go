@@ -139,11 +139,11 @@ func TestParseLocale(t *testing.T) {
 
 func TestSupportedLocales(t *testing.T) {
 	locales := SupportedLocales()
-	
+
 	assert.Len(t, locales, 2)
 	assert.Contains(t, locales, LocaleEnglishUS)
 	assert.Contains(t, locales, LocalePortugueseBR)
-	
+
 	// All locales should be valid
 	for _, locale := range locales {
 		assert.True(t, locale.IsValid(), "locale %s should be valid", locale)
@@ -152,7 +152,7 @@ func TestSupportedLocales(t *testing.T) {
 
 func TestSupportedLocalesString(t *testing.T) {
 	str := SupportedLocalesString()
-	
+
 	assert.Equal(t, "en-US, pt-BR", str)
 	assert.Contains(t, str, "en-US")
 	assert.Contains(t, str, "pt-BR")

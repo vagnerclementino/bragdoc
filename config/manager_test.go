@@ -304,17 +304,17 @@ func TestExpandHomeDir_Property(t *testing.T) {
 		for _, path := range testCases {
 			t.Run(path, func(t *testing.T) {
 				result := ExpandHomeDir(path)
-				
+
 				// Property: Result should start with home directory
 				assert.True(t, filepath.IsAbs(result), "expanded path should be absolute")
-				assert.True(t, strings.HasPrefix(result, homeDir), 
+				assert.True(t, strings.HasPrefix(result, homeDir),
 					"expanded path should start with home directory")
-				
+
 				// Property: The suffix after ~/ should be preserved
 				expectedSuffix := path[2:] // Remove "~/"
 				assert.True(t, strings.HasSuffix(result, expectedSuffix),
 					"expanded path should preserve the suffix after ~/")
-				
+
 				// Property: Result should equal homeDir + suffix
 				expected := filepath.Join(homeDir, expectedSuffix)
 				assert.Equal(t, expected, result)

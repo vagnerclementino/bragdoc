@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/vagnerclementino/bragdoc/internal/database/queries"
@@ -22,7 +23,7 @@ func NewTagRepository(db *SQLiteDB) repository.TagRepository {
 func (r *sqliteTagRepository) Select(ctx context.Context, id int64) (*domain.Tag, error) {
 	dbTag, err := r.db.Queries().GetTag(ctx, id)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf("tag not found: %d", id)
 		}
 		return nil, fmt.Errorf("failed to get tag: %w", err)
@@ -37,7 +38,7 @@ func (r *sqliteTagRepository) SelectByName(ctx context.Context, ownerID int64, n
 		Name:    name,
 	})
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf("tag not found: %s", name)
 		}
 		return nil, fmt.Errorf("failed to get tag by name: %w", err)

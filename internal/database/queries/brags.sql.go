@@ -72,7 +72,7 @@ func (q *Queries) GetBrag(ctx context.Context, id int64) (Brag, error) {
 }
 
 const listBragsByCategory = `-- name: ListBragsByCategory :many
-SELECT id, owner_id, title, description, category, created_at, updated_at FROM brags WHERE owner_id = ? AND category = ? ORDER BY created_at DESC
+SELECT id, owner_id, title, description, category, created_at, updated_at FROM brags WHERE owner_id = ? AND category = ? ORDER BY created_at
 `
 
 type ListBragsByCategoryParams struct {
@@ -112,7 +112,7 @@ func (q *Queries) ListBragsByCategory(ctx context.Context, arg ListBragsByCatego
 }
 
 const listBragsByUser = `-- name: ListBragsByUser :many
-SELECT id, owner_id, title, description, category, created_at, updated_at FROM brags WHERE owner_id = ? ORDER BY created_at DESC
+SELECT id, owner_id, title, description, category, created_at, updated_at FROM brags WHERE owner_id = ? ORDER BY created_at
 `
 
 func (q *Queries) ListBragsByUser(ctx context.Context, ownerID int64) ([]Brag, error) {

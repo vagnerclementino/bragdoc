@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/vagnerclementino/bragdoc/internal/database/queries"
@@ -22,7 +23,7 @@ func NewUserRepository(db *SQLiteDB) repository.UserRepository {
 func (r *sqliteUserRepository) Select(ctx context.Context, id int64) (*domain.User, error) {
 	dbUser, err := r.db.Queries().GetUser(ctx, id)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf("user not found: %d", id)
 		}
 		return nil, fmt.Errorf("failed to get user: %w", err)
@@ -34,7 +35,7 @@ func (r *sqliteUserRepository) Select(ctx context.Context, id int64) (*domain.Us
 func (r *sqliteUserRepository) SelectByEmail(ctx context.Context, email string) (*domain.User, error) {
 	dbUser, err := r.db.Queries().GetUserByEmail(ctx, email)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf("user not found: %s", email)
 		}
 		return nil, fmt.Errorf("failed to get user by email: %w", err)

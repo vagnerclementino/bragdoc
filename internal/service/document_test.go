@@ -128,11 +128,11 @@ func TestDocumentService_BuildMetadata(t *testing.T) {
 	}
 
 	tests := []struct {
-		name              string
-		brags             []*domain.Brag
-		expectedBragCount int
+		name               string
+		brags              []*domain.Brag
+		expectedBragCount  int
 		expectedCategories []string
-		expectedTags      []string
+		expectedTags       []string
 	}{
 		{
 			name: "Multiple brags with tags",
@@ -154,18 +154,18 @@ func TestDocumentService_BuildMetadata(t *testing.T) {
 					},
 				},
 			},
-			expectedBragCount: 2,
+			expectedBragCount:  2,
 			expectedCategories: []string{"achievement", "leadership"},
-			expectedTags:      []string{"automation", "leadership", "test"}, // Sorted
+			expectedTags:       []string{"automation", "leadership", "test"}, // Sorted
 		},
 		{
 			name: "Brags without tags",
 			brags: []*domain.Brag{
 				{ID: 1, Category: domain.CategoryProject},
 			},
-			expectedBragCount: 1,
+			expectedBragCount:  1,
 			expectedCategories: []string{"project"},
-			expectedTags:      []string{},
+			expectedTags:       []string{},
 		},
 	}
 
@@ -187,38 +187,38 @@ func TestDocumentService_GetTemplate(t *testing.T) {
 	docService := &DocumentService{}
 
 	tests := []struct {
-		name        string
+		name         string
 		templateName string
-		shouldError bool
-		errorMsg    string
+		shouldError  bool
+		errorMsg     string
 	}{
 		{
-			name:        "Default template",
+			name:         "Default template",
 			templateName: "default",
-			shouldError: false,
+			shouldError:  false,
 		},
 		{
-			name:        "Empty template name (defaults to default)",
+			name:         "Empty template name (defaults to default)",
 			templateName: "",
-			shouldError: false,
+			shouldError:  false,
 		},
 		{
-			name:        "Executive template (not implemented)",
+			name:         "Executive template (not implemented)",
 			templateName: "executive",
-			shouldError: true,
-			errorMsg:    "not yet implemented",
+			shouldError:  true,
+			errorMsg:     "not yet implemented",
 		},
 		{
-			name:        "Technical template (not implemented)",
+			name:         "Technical template (not implemented)",
 			templateName: "technical",
-			shouldError: true,
-			errorMsg:    "not yet implemented",
+			shouldError:  true,
+			errorMsg:     "not yet implemented",
 		},
 		{
-			name:        "Unknown template",
+			name:         "Unknown template",
 			templateName: "unknown",
-			shouldError: true,
-			errorMsg:    "unknown template",
+			shouldError:  true,
+			errorMsg:     "unknown template",
 		},
 	}
 

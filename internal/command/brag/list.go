@@ -71,7 +71,6 @@ func runList(ctx context.Context, bragService *service.BragService, tagService *
 		brags = brags[:limit]
 	}
 
-	// Load tags for each brag
 	for _, brag := range brags {
 		tags, err := tagService.ListByBrag(ctx, brag.ID)
 		if err != nil {
@@ -87,7 +86,6 @@ func runList(ctx context.Context, bragService *service.BragService, tagService *
 		return nil
 	}
 
-	// Format output
 	switch strings.ToLower(format) {
 	case "json":
 		return outputJSON(brags)

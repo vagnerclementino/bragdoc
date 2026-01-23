@@ -26,10 +26,10 @@ func NewDocumentService(userService *UserService) *DocumentService {
 
 // GenerateOptions contains options for document generation
 type GenerateOptions struct {
-	Format       domain.DocumentFormat
-	Template     string
+	Format        domain.DocumentFormat
+	Template      string
 	EnhanceWithAI bool
-	Language     string
+	Language      string
 }
 
 // Generate generates a document from brags
@@ -87,12 +87,12 @@ func (s *DocumentService) generateMarkdown(brags []*domain.Brag, user *domain.Us
 
 	// Prepare template data
 	data := map[string]interface{}{
-		"User":             user,
-		"Brags":            brags,
-		"BragsByCategory":  bragsByCategory,
-		"TotalBrags":       len(brags),
-		"GeneratedAt":      time.Now().Format("January 2, 2006"),
-		"Categories":       s.getCategoryList(bragsByCategory),
+		"User":            user,
+		"Brags":           brags,
+		"BragsByCategory": bragsByCategory,
+		"TotalBrags":      len(brags),
+		"GeneratedAt":     time.Now().Format("January 2, 2006"),
+		"Categories":      s.getCategoryList(bragsByCategory),
 	}
 
 	// Execute template
@@ -227,5 +227,3 @@ This document contains {{.TotalBrags}} professional achievements across {{len .C
 
 This brag document was generated using Bragdoc CLI, a tool for tracking and documenting professional achievements.
 `
-
-
