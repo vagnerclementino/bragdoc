@@ -1,0 +1,28 @@
+---
+version: 2
+
+linters:
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - revive
+    - gosec
+    - goconst
+    - gocyclo
+    - dupl
+    - misspell
+    - unparam
+    - unconvert
+    - prealloc
+    - bodyclose
+    - noctx
+    - nilerr
+
+issues:
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
