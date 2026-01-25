@@ -60,18 +60,30 @@ func runList(ctx context.Context, tagService *service.TagService, cmd *cobra.Com
 
 func outputTable(tags []*domain.Tag) error {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	fmt.Fprintln(w, "ID\tNAME\tCREATED")
-	fmt.Fprintln(w, "--\t----\t-------")
+	defer func() {
+		if err := w.Flush(); err != nil {
+			fmt.Fprintf(os.Stderr, "warning: failed to flush output: %v\n", err)
+		}
+	}()
+
+	if _, err := fmt.Fprintln(w, "ID\tNAME\tCREATED"); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintln(w, "--\t----\t-------"); err != nil {
+		return err
+	}
 
 	for _, tag := range tags {
-		fmt.Fprintf(w, "%d\t%s\t%s\n",
+		if _, err := fmt.Fprintf(w, "%d\t%s\t%s\n",
 			tag.ID,
 			tag.Name,
 			tag.CreatedAt.Format("2006-01-02"),
-		)
+		); err != nil {
+			return err
+		}
 	}
 
-	return w.Flush()
+	return nil
 }
 
 func outputJSON(tags []*domain.Tag) error {
@@ -82,6 +94,10 @@ func outputJSON(tags []*domain.Tag) error {
 
 func outputYAML(tags []*domain.Tag) error {
 	encoder := yaml.NewEncoder(os.Stdout)
-	defer encoder.Close()
+	defer func() {
+		if err := encoder.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "warning: failed to close YAML encoder: %v\n", err)
+		}
+	}()
 	return encoder.Encode(tags)
 }

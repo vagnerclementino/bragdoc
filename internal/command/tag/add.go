@@ -3,6 +3,7 @@ package tag
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -22,7 +23,9 @@ func NewAddCmd(tagService *service.TagService) *cobra.Command {
 	}
 
 	cmd.Flags().StringP("name", "n", "", "Tag name (required)")
-	cmd.MarkFlagRequired("name")
+	if err := cmd.MarkFlagRequired("name"); err != nil {
+		fmt.Fprintf(os.Stderr, "warning: failed to mark flag as required: %v\n", err)
+	}
 
 	return cmd
 }

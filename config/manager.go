@@ -161,7 +161,11 @@ func (m *Manager) Save(ctx context.Context, config *Config) error {
 	if err != nil {
 		return fmt.Errorf("failed to create config file: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		if closeErr := file.Close(); closeErr != nil {
+			err = fmt.Errorf("failed to close config file: %w", closeErr)
+		}
+	}()
 
 	// Encode based on format
 	switch m.format {

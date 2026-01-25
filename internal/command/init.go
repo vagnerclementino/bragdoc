@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/vagnerclementino/bragdoc/config"
@@ -25,8 +26,12 @@ func NewInitCmd() *cobra.Command {
 	// Required flags
 	cmd.Flags().StringP("name", "n", "", "Your full name (required)")
 	cmd.Flags().StringP("email", "e", "", "Your email (required)")
-	cmd.MarkFlagRequired("name")
-	cmd.MarkFlagRequired("email")
+	if err := cmd.MarkFlagRequired("name"); err != nil {
+		fmt.Fprintf(os.Stderr, "warning: failed to mark flag as required: %v\n", err)
+	}
+	if err := cmd.MarkFlagRequired("email"); err != nil {
+		fmt.Fprintf(os.Stderr, "warning: failed to mark flag as required: %v\n", err)
+	}
 
 	// Optional flags
 	cmd.Flags().StringP("job-title", "j", "", "Your job title (optional)")

@@ -100,8 +100,18 @@ func runList(ctx context.Context, bragService *service.BragService, tagService *
 
 func outputTable(brags []*domain.Brag) error {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	fmt.Fprintln(w, "ID\tTITLE\tCATEGORY\tTAGS\tCREATED")
-	fmt.Fprintln(w, "--\t-----\t--------\t----\t-------")
+	defer func() {
+		if err := w.Flush(); err != nil {
+			fmt.Fprintf(os.Stderr, "warning: failed to flush output: %v\n", err)
+		}
+	}()
+
+	if _, err := fmt.Fprintln(w, "ID\tTITLE\tCATEGORY\tTAGS\tCREATED"); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintln(w, "--\t-----\t--------\t----\t-------"); err != nil {
+		return err
+	}
 
 	for _, brag := range brags {
 		tagNames := make([]string, len(brag.Tags))
@@ -119,16 +129,18 @@ func outputTable(brags []*domain.Brag) error {
 			title = title[:47] + "..."
 		}
 
-		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\n",
+		if _, err := fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\n",
 			brag.ID,
 			title,
 			brag.Category.String(),
 			tagsStr,
 			brag.CreatedAt.Format("2006-01-02"),
-		)
+		); err != nil {
+			return err
+		}
 	}
 
-	return w.Flush()
+	return nil
 }
 
 func outputJSON(brags []*domain.Brag) error {
@@ -139,6 +151,10 @@ func outputJSON(brags []*domain.Brag) error {
 
 func outputYAML(brags []*domain.Brag) error {
 	encoder := yaml.NewEncoder(os.Stdout)
-	defer encoder.Close()
+	defer func() {
+		if err := encoder.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "warning: failed to close YAML encoder: %v\n", err)
+		}
+	}()
 	return encoder.Encode(brags)
 }

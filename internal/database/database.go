@@ -81,8 +81,12 @@ func checkWritePermission(dir string) error {
 	if err != nil {
 		return fmt.Errorf("no write permission in directory %s: %w", dir, err)
 	}
-	f.Close()
-	os.Remove(testFile)
+	if err := f.Close(); err != nil {
+		return fmt.Errorf("failed to close test file: %w", err)
+	}
+	if err := os.Remove(testFile); err != nil {
+		return fmt.Errorf("failed to remove test file: %w", err)
+	}
 
 	return nil
 }
@@ -159,13 +163,17 @@ func (db *DB) Migrate(ctx context.Context) error {
 
 		// Execute migration SQL
 		if _, err := tx.ExecContext(ctx, string(content)); err != nil {
-			tx.Rollback()
+			if rbErr := tx.Rollback(); rbErr != nil {
+				return fmt.Errorf("failed to execute migration %s: %w (rollback error: %v)", filename, err, rbErr)
+			}
 			return fmt.Errorf("failed to execute migration %s: %w", filename, err)
 		}
 
 		// Record migration
 		if _, err := tx.ExecContext(ctx, "INSERT INTO schema_migrations (version) VALUES (?)", version); err != nil {
-			tx.Rollback()
+			if rbErr := tx.Rollback(); rbErr != nil {
+				return fmt.Errorf("failed to record migration %s: %w (rollback error: %v)", filename, err, rbErr)
+			}
 			return fmt.Errorf("failed to record migration %s: %w", filename, err)
 		}
 
@@ -184,7 +192,11 @@ func (db *DB) getAppliedMigrations(ctx context.Context) (map[string]bool, error)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "warning: failed to close rows: %v\n", err)
+		}
+	}()
 
 	applied := make(map[string]bool)
 	for rows.Next() {
@@ -229,7 +241,9 @@ func SetupDatabase(dbPath string) (*DB, error) {
 	}
 
 	if err := db.Migrate(context.Background()); err != nil {
-		db.Close()
+		if closeErr := db.Close(); closeErr != nil {
+			return nil, fmt.Errorf("failed to run migrations: %w (close error: %v)", err, closeErr)
+		}
 		return nil, fmt.Errorf("failed to run migrations: %w", err)
 	}
 
