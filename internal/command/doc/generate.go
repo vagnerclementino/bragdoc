@@ -1,3 +1,4 @@
+// Package doc provides commands for generating brag documents.
 package doc
 
 import (
@@ -12,6 +13,7 @@ import (
 	"github.com/vagnerclementino/bragdoc/internal/service"
 )
 
+// NewGenerateCmd creates a new command for generating documents.
 func NewGenerateCmd(docService *service.DocumentService, bragService *service.BragService, tagService *service.TagService) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "generate",
@@ -36,7 +38,7 @@ Examples:
 
   # Generate with brags having specific tags
   bragdoc doc generate --tags promotion,review`,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			return runGenerate(cmd.Context(), docService, bragService, tagService, cmd)
 		},
 	}
@@ -203,9 +205,7 @@ func getBragsByFilters(ctx context.Context, bragService *service.BragService, us
 		if len(categories) > 0 {
 			// If we also filtered by category, only include brags that match both
 			for _, brag := range brags {
-				if _, exists := bragMap[brag.ID]; exists {
-					// Keep this brag as it matches both filters
-				} else {
+				if _, exists := bragMap[brag.ID]; !exists {
 					// Remove from map as it doesn't match category filter
 					delete(bragMap, brag.ID)
 				}

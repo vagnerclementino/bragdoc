@@ -1,3 +1,4 @@
+// Package config provides configuration management for bragdoc.
 package config
 
 import (
@@ -77,8 +78,11 @@ func GetDefaultConfig(configDir string) *Config {
 }
 
 // ConfigFormat represents supported configuration file formats
+//
+//nolint:revive // ConfigFormat is intentionally prefixed with Config for clarity
 type ConfigFormat string
 
+// Supported configuration formats
 const (
 	FormatYAML ConfigFormat = "yaml"
 	FormatJSON ConfigFormat = "json"
@@ -128,6 +132,8 @@ func (e ErrUnsupportedFormat) Error() string {
 }
 
 // ConfigMetadata stores metadata about the configuration
+//
+//nolint:revive // ConfigMetadata is intentionally prefixed with Config for clarity
 type ConfigMetadata struct {
 	Version   string    `yaml:"version" json:"version" toml:"version"`
 	CreatedAt time.Time `yaml:"created_at" json:"created_at" toml:"created_at"`

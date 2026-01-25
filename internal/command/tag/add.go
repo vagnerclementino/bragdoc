@@ -1,3 +1,4 @@
+// Package tag provides commands for managing tags.
 package tag
 
 import (
@@ -12,12 +13,13 @@ import (
 	"github.com/vagnerclementino/bragdoc/internal/service"
 )
 
+// NewAddCmd creates a new command for adding tags.
 func NewAddCmd(tagService *service.TagService) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add",
 		Short: "Add a new tag",
 		Long:  `Create a new tag for organizing your brags`,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			return runAdd(cmd.Context(), tagService, cmd)
 		},
 	}

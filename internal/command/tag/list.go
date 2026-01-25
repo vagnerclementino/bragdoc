@@ -14,12 +14,13 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// NewListCmd creates a new command for listing tags.
 func NewListCmd(tagService *service.TagService) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List all tags",
 		Long:  `List all tags created by the user`,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			return runList(cmd.Context(), tagService, cmd)
 		},
 	}

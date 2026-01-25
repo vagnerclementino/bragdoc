@@ -1,3 +1,4 @@
+// Package domain contains the core domain entities and business rules.
 package domain
 
 import (
@@ -9,6 +10,7 @@ import (
 // Category represents the category of a brag
 type Category int
 
+// Brag categories
 const (
 	CategoryUnknown Category = iota + 1
 	CategoryProject

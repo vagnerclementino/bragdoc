@@ -1,3 +1,4 @@
+// Package repository provides data access layer for persistence operations.
 package repository
 
 import (

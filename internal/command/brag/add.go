@@ -1,3 +1,4 @@
+// Package brag provides commands for managing brag entries.
 package brag
 
 import (
@@ -11,12 +12,13 @@ import (
 	"github.com/vagnerclementino/bragdoc/internal/service"
 )
 
+// NewAddCmd creates a new command for adding brag entries.
 func NewAddCmd(bragService *service.BragService, userService *service.UserService, tagService *service.TagService) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add",
 		Short: "Add a new brag entry",
 		Long:  `Add a new brag entry to document your professional achievements`,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			return runAdd(cmd.Context(), bragService, userService, tagService, cmd)
 		},
 	}

@@ -5,6 +5,7 @@ import (
 	"github.com/vagnerclementino/bragdoc/internal/service"
 )
 
+// NewTagCmd creates the root command for tag management.
 func NewTagCmd(tagService *service.TagService) *cobra.Command {
 	tagCmd := &cobra.Command{
 		Use:   "tag",

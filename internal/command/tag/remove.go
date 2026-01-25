@@ -12,6 +12,7 @@ import (
 	"github.com/vagnerclementino/bragdoc/internal/service"
 )
 
+// NewRemoveCmd creates a new command for removing tags.
 func NewRemoveCmd(tagService *service.TagService) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "remove <id>",

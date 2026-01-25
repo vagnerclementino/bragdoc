@@ -105,7 +105,7 @@ func (m *Manager) Initialize(ctx context.Context, config *Config, format ConfigF
 
 // Load reads the configuration from file
 // Returns an empty config with defaults if not initialized
-func (m *Manager) Load(ctx context.Context) (*Config, error) {
+func (m *Manager) Load(_ context.Context) (*Config, error) {
 	// If not initialized, return default config
 	if !m.IsInitialized() {
 		return m.GetDefaultConfig(), nil
@@ -146,7 +146,7 @@ func (m *Manager) Load(ctx context.Context) (*Config, error) {
 }
 
 // Save writes the configuration to file
-func (m *Manager) Save(ctx context.Context, config *Config) error {
+func (m *Manager) Save(_ context.Context, config *Config) error {
 	if m.configFile == "" {
 		return fmt.Errorf("configuration file path not set")
 	}

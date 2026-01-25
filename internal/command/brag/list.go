@@ -14,12 +14,13 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// NewListCmd creates a new command for listing brag entries.
 func NewListCmd(bragService *service.BragService, tagService *service.TagService) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List brag entries",
 		Long:  `List all your documented professional achievements with optional filters`,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			return runList(cmd.Context(), bragService, tagService, cmd)
 		},
 	}

@@ -13,6 +13,7 @@ import (
 	"github.com/vagnerclementino/bragdoc/internal/service"
 )
 
+// NewRemoveCmd creates a new command for removing brag entries.
 func NewRemoveCmd(bragService *service.BragService) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "remove <ids>",

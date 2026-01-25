@@ -1,3 +1,4 @@
+// Package command provides CLI commands for the bragdoc application.
 package command
 
 import (
@@ -13,12 +14,13 @@ import (
 	"github.com/vagnerclementino/bragdoc/internal/database/queries"
 )
 
+// NewInitCmd creates a new command for initializing bragdoc.
 func NewInitCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "init",
 		Short: "Initialize Bragdoc configuration and database",
 		Long:  `Initialize Bragdoc by creating the configuration directory and setting up the database with migrations`,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			return runInit(cmd.Context(), cmd)
 		},
 	}

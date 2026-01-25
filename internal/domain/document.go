@@ -8,6 +8,7 @@ import (
 // DocumentFormat represents the output format for generated documents
 type DocumentFormat int
 
+// Document output formats
 const (
 	FormatUnknown DocumentFormat = iota
 	FormatMarkdown

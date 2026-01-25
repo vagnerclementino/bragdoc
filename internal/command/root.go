@@ -8,6 +8,7 @@ import (
 	"github.com/vagnerclementino/bragdoc/internal/service"
 )
 
+// NewRootCmd creates the root command for the bragdoc CLI.
 func NewRootCmd(bragService *service.BragService, userService *service.UserService, tagService *service.TagService, docService *service.DocumentService) *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:   "bragdoc",

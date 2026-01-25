@@ -11,6 +11,7 @@ import (
 	"github.com/vagnerclementino/bragdoc/internal/service"
 )
 
+// NewEditCmd creates a new command for editing brag entries.
 func NewEditCmd(bragService *service.BragService, tagService *service.TagService) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "edit <id>",

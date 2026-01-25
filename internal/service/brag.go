@@ -1,3 +1,4 @@
+// Package service implements business logic and validation rules.
 package service
 
 import (

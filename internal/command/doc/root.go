@@ -5,6 +5,7 @@ import (
 	"github.com/vagnerclementino/bragdoc/internal/service"
 )
 
+// NewDocCmd creates the root command for document management.
 func NewDocCmd(docService *service.DocumentService, bragService *service.BragService, tagService *service.TagService) *cobra.Command {
 	docCmd := &cobra.Command{
 		Use:   "doc",

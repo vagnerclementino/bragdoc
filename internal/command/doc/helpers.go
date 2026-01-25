@@ -10,7 +10,7 @@ import (
 
 // requiresInitialization returns a PreRunE function that checks if bragdoc is initialized
 func requiresInitialization() func(*cobra.Command, []string) error {
-	return func(cmd *cobra.Command, args []string) error {
+	return func(_ *cobra.Command, _ []string) error {
 		if !isInitialized() {
 			return fmt.Errorf(`bragdoc is not initialized. Please run 'bragdoc init' first.
 

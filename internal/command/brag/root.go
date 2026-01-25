@@ -5,6 +5,7 @@ import (
 	"github.com/vagnerclementino/bragdoc/internal/service"
 )
 
+// NewBragCmd creates the root command for brag management.
 func NewBragCmd(bragService *service.BragService, userService *service.UserService, tagService *service.TagService) *cobra.Command {
 	bragCmd := &cobra.Command{
 		Use:   "brag",

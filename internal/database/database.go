@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strings"
 
+	// SQLite driver
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/vagnerclementino/bragdoc/internal/database/queries"
 )

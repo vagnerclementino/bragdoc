@@ -11,6 +11,7 @@ import (
 	"github.com/vagnerclementino/bragdoc/internal/service"
 )
 
+// NewShowCmd creates a new command for showing detailed brag information.
 func NewShowCmd(bragService *service.BragService, tagService *service.TagService) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "show <ids>",
