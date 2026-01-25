@@ -39,8 +39,9 @@ func TestMain(m *testing.M) {
 	build := "test"
 	ldflags := fmt.Sprintf("-X 'github.com/vagnerclementino/bragdoc/internal/command.Version=%s' -X 'github.com/vagnerclementino/bragdoc/internal/command.Build=%s'", version, build)
 
+	ctx := context.Background()
 	// #nosec G204 - Command arguments are controlled by test code
-	buildCmd := exec.Command("go", "build", "-cover", "-o", binaryName, "-ldflags", ldflags, "./cmd/cli")
+	buildCmd := exec.CommandContext(ctx, "go", "build", "-cover", "-o", binaryName, "-ldflags", ldflags, "./cmd/cli")
 	buildCmd.Env = append(os.Environ(), "CGO_ENABLED=1")
 	if output, err := buildCmd.CombinedOutput(); err != nil {
 		fmt.Printf("Failed to build test binary: %v\n%s\n", err, output)
