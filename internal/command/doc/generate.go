@@ -132,7 +132,7 @@ func runGenerate(ctx context.Context, docService *service.DocumentService, bragS
 
 	// Save or output document
 	if output != "" {
-		if err := os.WriteFile(output, doc.Content, 0644); err != nil {
+		if err := os.WriteFile(output, doc.Content, 0600); err != nil {
 			return fmt.Errorf("failed to write document: %w", err)
 		}
 		fmt.Printf("✅ Document generated successfully!\n")

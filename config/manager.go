@@ -76,13 +76,13 @@ func (m *Manager) Initialize(ctx context.Context, config *Config, format ConfigF
 	}
 
 	// Create .bragdoc directory
-	if err := os.MkdirAll(m.configDir, 0755); err != nil {
+	if err := os.MkdirAll(m.configDir, 0750); err != nil {
 		return fmt.Errorf("failed to create config directory: %w", err)
 	}
 
 	// Create logs directory
 	logsDir := filepath.Join(m.configDir, "logs")
-	if err := os.MkdirAll(logsDir, 0755); err != nil {
+	if err := os.MkdirAll(logsDir, 0750); err != nil {
 		return fmt.Errorf("failed to create logs directory: %w", err)
 	}
 

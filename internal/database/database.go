@@ -32,7 +32,7 @@ func New(dbPath string) (*DB, error) {
 
 	// Ensure directory exists
 	dir := filepath.Dir(dbPath)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0750); err != nil {
 		return nil, fmt.Errorf("failed to create database directory: %w", err)
 	}
 
@@ -77,6 +77,7 @@ func validateDatabasePath(dbPath string) error {
 func checkWritePermission(dir string) error {
 	// Try to create a temporary file to test write permissions
 	testFile := filepath.Join(dir, ".write_test")
+	// #nosec G304 - Test file path is constructed from validated directory
 	f, err := os.Create(testFile)
 	if err != nil {
 		return fmt.Errorf("no write permission in directory %s: %w", dir, err)

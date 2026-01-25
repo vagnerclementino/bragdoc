@@ -32,7 +32,7 @@ func TestManager_IsInitialized(t *testing.T) {
 
 	// Create a config file
 	configFile := filepath.Join(tempDir, "config.yaml")
-	err := os.WriteFile(configFile, []byte("user:\n  name: Test\n"), 0644)
+	err := os.WriteFile(configFile, []byte("user:\n  name: Test\n"), 0600)
 	require.NoError(t, err)
 
 	// Should be initialized now
@@ -210,7 +210,7 @@ func TestManager_detectConfigFile(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create a fresh temp directory for each test
 			testDir := filepath.Join(tempDir, tt.name)
-			err := os.MkdirAll(testDir, 0755)
+			err := os.MkdirAll(testDir, 0750)
 			require.NoError(t, err)
 
 			manager := &Manager{
@@ -219,7 +219,7 @@ func TestManager_detectConfigFile(t *testing.T) {
 
 			// Create the config file
 			configPath := filepath.Join(testDir, tt.createFile)
-			err = os.WriteFile(configPath, []byte("test"), 0644)
+			err = os.WriteFile(configPath, []byte("test"), 0600)
 			require.NoError(t, err)
 
 			// Detect config file

@@ -39,6 +39,7 @@ func TestMain(m *testing.M) {
 	build := "test"
 	ldflags := fmt.Sprintf("-X 'github.com/vagnerclementino/bragdoc/internal/command.Version=%s' -X 'github.com/vagnerclementino/bragdoc/internal/command.Build=%s'", version, build)
 
+	// #nosec G204 - Command arguments are controlled by test code
 	buildCmd := exec.Command("go", "build", "-cover", "-o", binaryName, "-ldflags", ldflags, "./cmd/cli")
 	buildCmd.Env = append(os.Environ(), "CGO_ENABLED=1")
 	if output, err := buildCmd.CombinedOutput(); err != nil {
@@ -47,7 +48,7 @@ func TestMain(m *testing.M) {
 	}
 
 	// Create coverage directory
-	if err := os.MkdirAll(".coverdata", 0755); err != nil {
+	if err := os.MkdirAll(".coverdata", 0750); err != nil {
 		fmt.Printf("could not create coverage dir: %v\n", err)
 		os.Exit(1)
 	}
@@ -83,6 +84,7 @@ func runBinary(args []string, env map[string]string) ([]byte, error) {
 func loadFixture(t *testing.T, filename string) string {
 	t.Helper()
 
+	// #nosec G304 - Test fixture path is controlled by test code
 	content, err := os.ReadFile(filepath.Join("testdata", "golden", filename))
 	if err != nil {
 		t.Fatalf("could not read fixture %s: %v", filename, err)
@@ -95,11 +97,11 @@ func writeFixture(t *testing.T, filename string, content []byte) {
 	t.Helper()
 
 	fixtureDir := filepath.Join("testdata", "golden")
-	if err := os.MkdirAll(fixtureDir, 0755); err != nil {
+	if err := os.MkdirAll(fixtureDir, 0750); err != nil {
 		t.Fatalf("could not create fixture dir: %v", err)
 	}
 
-	if err := os.WriteFile(filepath.Join(fixtureDir, filename), content, 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(fixtureDir, filename), content, 0600); err != nil {
 		t.Fatalf("could not write fixture %s: %v", filename, err)
 	}
 }
@@ -425,6 +427,7 @@ func TestCLIFullWorkflow(t *testing.T) {
 		assert.Contains(t, string(output), "Document generated successfully")
 
 		// Verify file was created
+		// #nosec G304 - Test file path is controlled by test code
 		content, err := os.ReadFile(filepath.Join(tmpDir, "bragdoc.md"))
 		assert.NoError(t, err)
 		assert.Contains(t, string(content), "Updated Achievement")
