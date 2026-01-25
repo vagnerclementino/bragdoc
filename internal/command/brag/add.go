@@ -93,7 +93,7 @@ func runAdd(ctx context.Context, bragService *service.BragService, userService *
 
 // attachTags handles tag creation and attachment to a brag
 func attachTags(ctx context.Context, tagService *service.TagService, bragID int64, userID int64, tagNames []string) error {
-	var tagIDs []int64
+	tagIDs := make([]int64, 0, len(tagNames))
 
 	for _, tagName := range tagNames {
 		tagName = strings.TrimSpace(tagName)

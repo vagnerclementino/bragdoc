@@ -5,11 +5,12 @@ import (
 	"context"
 	"fmt"
 	"sort"
-	"strings"
 	"text/template"
 	"time"
 
 	"github.com/vagnerclementino/bragdoc/internal/domain"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // DocumentService provides business logic for document generation
@@ -120,8 +121,9 @@ func (s *DocumentService) getTemplate(name string) (*template.Template, error) {
 	}
 
 	// Create template with custom functions
+	caser := cases.Title(language.English)
 	tmpl := template.New("document").Funcs(template.FuncMap{
-		"title": strings.Title,
+		"title": caser.String,
 	})
 
 	tmpl, err := tmpl.Parse(tmplContent)

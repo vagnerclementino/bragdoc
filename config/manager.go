@@ -175,9 +175,7 @@ func (m *Manager) Save(ctx context.Context, config *Config) error {
 			m.viper = viper.New()
 		}
 		m.viper.SetConfigType("yaml")
-		if err := m.setViperConfig(config); err != nil {
-			return err
-		}
+		m.setViperConfig(config)
 		if err := m.viper.WriteConfigAs(m.configFile); err != nil {
 			return fmt.Errorf("failed to write YAML config: %w", err)
 		}
@@ -250,11 +248,9 @@ func (m *Manager) detectConfigFile() error {
 }
 
 // setViperConfig sets all configuration values in viper
-func (m *Manager) setViperConfig(config *Config) error {
+func (m *Manager) setViperConfig(config *Config) {
 	// Database configuration
 	m.viper.Set("database.path", config.Database.Path)
-
-	return nil
 }
 
 // ExpandHomeDir expands ~ to the user's home directory

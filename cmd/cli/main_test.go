@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -67,7 +68,8 @@ func TestMain(m *testing.M) {
 
 // Helper functions for golden files
 func runBinary(args []string, env map[string]string) ([]byte, error) {
-	cmd := exec.Command(binaryPath, args...)
+	ctx := context.Background()
+	cmd := exec.CommandContext(ctx, binaryPath, args...)
 	cmd.Env = append(os.Environ(), "GOCOVERDIR=.coverdata")
 
 	// Add custom environment variables

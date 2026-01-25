@@ -149,7 +149,7 @@ func runGenerate(ctx context.Context, docService *service.DocumentService, bragS
 
 // getBragsByIDs retrieves brags by their IDs
 func getBragsByIDs(ctx context.Context, bragService *service.BragService, bragIDStrs []string) ([]*domain.Brag, error) {
-	var brags []*domain.Brag
+	brags := make([]*domain.Brag, 0, len(bragIDStrs))
 
 	for _, idStr := range bragIDStrs {
 		id, err := strconv.ParseInt(strings.TrimSpace(idStr), 10, 64)
@@ -170,7 +170,7 @@ func getBragsByIDs(ctx context.Context, bragService *service.BragService, bragID
 
 // getBragsByFilters retrieves brags filtered by categories and/or tags
 func getBragsByFilters(ctx context.Context, bragService *service.BragService, userID int64, categories []string, tagNames []string) ([]*domain.Brag, error) {
-	var allBrags []*domain.Brag
+	allBrags := make([]*domain.Brag, 0)
 	bragMap := make(map[int64]*domain.Brag)
 
 	// If categories specified, get brags by category
