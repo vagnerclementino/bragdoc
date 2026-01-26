@@ -33,7 +33,7 @@ clean: ##@application clean binary and artifacts
 .PHONY: build
 build: generate ##@application build application
 	rm -f $(BINARY_NAME)
-	env GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o $(BINARY_NAME) -ldflags $(LDFLAGS) ./cmd/cli
+	env CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o $(BINARY_NAME) -ldflags $(LDFLAGS) ./cmd/cli
 	chmod +x $(BINARY_NAME)
 
 .PHONY: fmt

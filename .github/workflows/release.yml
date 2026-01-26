@@ -17,6 +17,7 @@ jobs:
     env:
       GOOS: darwin
       GOARCH: amd64
+      CGO_ENABLED: 1
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
@@ -53,6 +54,7 @@ jobs:
     env:
       GOOS: darwin
       GOARCH: arm64
+      CGO_ENABLED: 1
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
@@ -89,6 +91,7 @@ jobs:
     env:
       GOOS: linux
       GOARCH: amd64
+      CGO_ENABLED: 1
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
