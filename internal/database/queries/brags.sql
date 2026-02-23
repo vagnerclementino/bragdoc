@@ -5,16 +5,16 @@ SELECT * FROM brags WHERE id = ? LIMIT 1;
 SELECT * FROM brags WHERE owner_id = ? ORDER BY created_at;
 
 -- name: ListBragsByCategory :many
-SELECT * FROM brags WHERE owner_id = ? AND category = ? ORDER BY created_at;
+SELECT * FROM brags WHERE owner_id = ? AND category_id = ? ORDER BY created_at;
 
 -- name: CreateBrag :one
-INSERT INTO brags (owner_id, title, description, category, created_at)
-VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+INSERT INTO brags (owner_id, title, description, category_id, position_id, created_at)
+VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
 RETURNING *;
 
 -- name: UpdateBrag :one
 UPDATE brags 
-SET title = ?, description = ?, category = ?, updated_at = CURRENT_TIMESTAMP
+SET title = ?, description = ?, category_id = ?, position_id = ?, updated_at = CURRENT_TIMESTAMP
 WHERE id = ?
 RETURNING *;
 

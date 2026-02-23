@@ -6,41 +6,45 @@
 package queries
 
 import (
-	"context"
-	"strings"
+    "context"
+    "database/sql"
+    "strings"
 )
 
 const createBrag = `-- name: CreateBrag :one
-INSERT INTO brags (owner_id, title, description, category, created_at)
-VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
-RETURNING id, owner_id, title, description, category, created_at, updated_at
+INSERT INTO brags (owner_id, title, description, category_id, position_id, created_at)
+VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+RETURNING id, owner_id, title, description, category_id, position_id, created_at, updated_at
 `
 
 type CreateBragParams struct {
-	OwnerID     int64  `db:"owner_id" json:"owner_id"`
-	Title       string `db:"title" json:"title"`
-	Description string `db:"description" json:"description"`
-	Category    int64  `db:"category" json:"category"`
+    OwnerID     int64        `db:"owner_id" json:"owner_id"`
+    Title       string       `db:"title" json:"title"`
+    Description string       `db:"description" json:"description"`
+    CategoryID  int64        `db:"category_id" json:"category_id"`
+    PositionID  sql.NullInt64 `db:"position_id" json:"position_id"`
 }
 
 func (q *Queries) CreateBrag(ctx context.Context, arg CreateBragParams) (Brag, error) {
-	row := q.db.QueryRowContext(ctx, createBrag,
-		arg.OwnerID,
-		arg.Title,
-		arg.Description,
-		arg.Category,
-	)
-	var i Brag
-	err := row.Scan(
-		&i.ID,
-		&i.OwnerID,
-		&i.Title,
-		&i.Description,
-		&i.Category,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
+    row := q.db.QueryRowContext(ctx, createBrag,
+        arg.OwnerID,
+        arg.Title,
+        arg.Description,
+        arg.CategoryID,
+        arg.PositionID,
+    )
+    var i Brag
+    err := row.Scan(
+        &i.ID,
+        &i.OwnerID,
+        &i.Title,
+        &i.Description,
+        &i.CategoryID,
+        &i.PositionID,
+        &i.CreatedAt,
+        &i.UpdatedAt,
+    )
+    return i, err
 }
 
 const deleteBrag = `-- name: DeleteBrag :exec
@@ -48,106 +52,109 @@ DELETE FROM brags WHERE id = ?
 `
 
 func (q *Queries) DeleteBrag(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deleteBrag, id)
-	return err
+    _, err := q.db.ExecContext(ctx, deleteBrag, id)
+    return err
 }
 
 const getBrag = `-- name: GetBrag :one
-SELECT id, owner_id, title, description, category, created_at, updated_at FROM brags WHERE id = ? LIMIT 1
+SELECT id, owner_id, title, description, category_id, position_id, created_at, updated_at FROM brags WHERE id = ? LIMIT 1
 `
 
 func (q *Queries) GetBrag(ctx context.Context, id int64) (Brag, error) {
-	row := q.db.QueryRowContext(ctx, getBrag, id)
-	var i Brag
-	err := row.Scan(
-		&i.ID,
-		&i.OwnerID,
-		&i.Title,
-		&i.Description,
-		&i.Category,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
+    row := q.db.QueryRowContext(ctx, getBrag, id)
+    var i Brag
+    err := row.Scan(
+        &i.ID,
+        &i.OwnerID,
+        &i.Title,
+        &i.Description,
+        &i.CategoryID,
+        &i.PositionID,
+        &i.CreatedAt,
+        &i.UpdatedAt,
+    )
+    return i, err
 }
 
 const listBragsByCategory = `-- name: ListBragsByCategory :many
-SELECT id, owner_id, title, description, category, created_at, updated_at FROM brags WHERE owner_id = ? AND category = ? ORDER BY created_at
+SELECT id, owner_id, title, description, category_id, position_id, created_at, updated_at FROM brags WHERE owner_id = ? AND category_id = ? ORDER BY created_at
 `
 
 type ListBragsByCategoryParams struct {
-	OwnerID  int64 `db:"owner_id" json:"owner_id"`
-	Category int64 `db:"category" json:"category"`
+    OwnerID    int64 `db:"owner_id" json:"owner_id"`
+    CategoryID int64 `db:"category_id" json:"category_id"`
 }
 
 func (q *Queries) ListBragsByCategory(ctx context.Context, arg ListBragsByCategoryParams) ([]Brag, error) {
-	rows, err := q.db.QueryContext(ctx, listBragsByCategory, arg.OwnerID, arg.Category)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Brag
-	for rows.Next() {
-		var i Brag
-		if err := rows.Scan(
-			&i.ID,
-			&i.OwnerID,
-			&i.Title,
-			&i.Description,
-			&i.Category,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+    rows, err := q.db.QueryContext(ctx, listBragsByCategory, arg.OwnerID, arg.CategoryID)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+    var items []Brag
+    for rows.Next() {
+        var i Brag
+        if err := rows.Scan(
+            &i.ID,
+            &i.OwnerID,
+            &i.Title,
+            &i.Description,
+            &i.CategoryID,
+            &i.PositionID,
+            &i.CreatedAt,
+            &i.UpdatedAt,
+        ); err != nil {
+            return nil, err
+        }
+        items = append(items, i)
+    }
+    if err := rows.Close(); err != nil {
+        return nil, err
+    }
+    if err := rows.Err(); err != nil {
+        return nil, err
+    }
+    return items, nil
 }
 
 const listBragsByUser = `-- name: ListBragsByUser :many
-SELECT id, owner_id, title, description, category, created_at, updated_at FROM brags WHERE owner_id = ? ORDER BY created_at
+SELECT id, owner_id, title, description, category_id, position_id, created_at, updated_at FROM brags WHERE owner_id = ? ORDER BY created_at
 `
 
 func (q *Queries) ListBragsByUser(ctx context.Context, ownerID int64) ([]Brag, error) {
-	rows, err := q.db.QueryContext(ctx, listBragsByUser, ownerID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Brag
-	for rows.Next() {
-		var i Brag
-		if err := rows.Scan(
-			&i.ID,
-			&i.OwnerID,
-			&i.Title,
-			&i.Description,
-			&i.Category,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+    rows, err := q.db.QueryContext(ctx, listBragsByUser, ownerID)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+    var items []Brag
+    for rows.Next() {
+        var i Brag
+        if err := rows.Scan(
+            &i.ID,
+            &i.OwnerID,
+            &i.Title,
+            &i.Description,
+            &i.CategoryID,
+            &i.PositionID,
+            &i.CreatedAt,
+            &i.UpdatedAt,
+        ); err != nil {
+            return nil, err
+        }
+        items = append(items, i)
+    }
+    if err := rows.Close(); err != nil {
+        return nil, err
+    }
+    if err := rows.Err(); err != nil {
+        return nil, err
+    }
+    return items, nil
 }
 
 const searchBragsByTags = `-- name: SearchBragsByTags :many
-SELECT DISTINCT b.id, b.owner_id, b.title, b.description, b.category, b.created_at, b.updated_at FROM brags b
+SELECT DISTINCT b.id, b.owner_id, b.title, b.description, b.category_id, b.position_id, b.created_at, b.updated_at FROM brags b
 JOIN brag_tags bt ON b.id = bt.brag_id
 JOIN tags t ON bt.tag_id = t.id
 WHERE b.owner_id = ? AND t.name IN (/*SLICE:tag_names*/?)
@@ -155,82 +162,86 @@ ORDER BY b.created_at DESC
 `
 
 type SearchBragsByTagsParams struct {
-	OwnerID  int64    `db:"owner_id" json:"owner_id"`
-	TagNames []string `db:"tag_names" json:"tag_names"`
+    OwnerID  int64    `db:"owner_id" json:"owner_id"`
+    TagNames []string `db:"tag_names" json:"tag_names"`
 }
 
 func (q *Queries) SearchBragsByTags(ctx context.Context, arg SearchBragsByTagsParams) ([]Brag, error) {
-	query := searchBragsByTags
-	var queryParams []interface{}
-	queryParams = append(queryParams, arg.OwnerID)
-	if len(arg.TagNames) > 0 {
-		for _, v := range arg.TagNames {
-			queryParams = append(queryParams, v)
-		}
-		query = strings.Replace(query, "/*SLICE:tag_names*/?", strings.Repeat(",?", len(arg.TagNames))[1:], 1)
-	} else {
-		query = strings.Replace(query, "/*SLICE:tag_names*/?", "NULL", 1)
-	}
-	rows, err := q.db.QueryContext(ctx, query, queryParams...)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Brag
-	for rows.Next() {
-		var i Brag
-		if err := rows.Scan(
-			&i.ID,
-			&i.OwnerID,
-			&i.Title,
-			&i.Description,
-			&i.Category,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+    query := searchBragsByTags
+    var queryParams []interface{}
+    queryParams = append(queryParams, arg.OwnerID)
+    if len(arg.TagNames) > 0 {
+        for _, v := range arg.TagNames {
+            queryParams = append(queryParams, v)
+        }
+        query = strings.Replace(query, "/*SLICE:tag_names*/?", strings.Repeat(",?", len(arg.TagNames))[1:], 1)
+    } else {
+        query = strings.Replace(query, "/*SLICE:tag_names*/?", "NULL", 1)
+    }
+    rows, err := q.db.QueryContext(ctx, query, queryParams...)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+    var items []Brag
+    for rows.Next() {
+        var i Brag
+        if err := rows.Scan(
+            &i.ID,
+            &i.OwnerID,
+            &i.Title,
+            &i.Description,
+            &i.CategoryID,
+            &i.PositionID,
+            &i.CreatedAt,
+            &i.UpdatedAt,
+        ); err != nil {
+            return nil, err
+        }
+        items = append(items, i)
+    }
+    if err := rows.Close(); err != nil {
+        return nil, err
+    }
+    if err := rows.Err(); err != nil {
+        return nil, err
+    }
+    return items, nil
 }
 
 const updateBrag = `-- name: UpdateBrag :one
 UPDATE brags 
-SET title = ?, description = ?, category = ?, updated_at = CURRENT_TIMESTAMP
+SET title = ?, description = ?, category_id = ?, position_id = ?, updated_at = CURRENT_TIMESTAMP
 WHERE id = ?
-RETURNING id, owner_id, title, description, category, created_at, updated_at
+RETURNING id, owner_id, title, description, category_id, position_id, created_at, updated_at
 `
 
 type UpdateBragParams struct {
-	Title       string `db:"title" json:"title"`
-	Description string `db:"description" json:"description"`
-	Category    int64  `db:"category" json:"category"`
-	ID          int64  `db:"id" json:"id"`
+    Title       string       `db:"title" json:"title"`
+    Description string       `db:"description" json:"description"`
+    CategoryID  int64        `db:"category_id" json:"category_id"`
+    PositionID  sql.NullInt64 `db:"position_id" json:"position_id"`
+    ID          int64        `db:"id" json:"id"`
 }
 
 func (q *Queries) UpdateBrag(ctx context.Context, arg UpdateBragParams) (Brag, error) {
-	row := q.db.QueryRowContext(ctx, updateBrag,
-		arg.Title,
-		arg.Description,
-		arg.Category,
-		arg.ID,
-	)
-	var i Brag
-	err := row.Scan(
-		&i.ID,
-		&i.OwnerID,
-		&i.Title,
-		&i.Description,
-		&i.Category,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
+    row := q.db.QueryRowContext(ctx, updateBrag,
+        arg.Title,
+        arg.Description,
+        arg.CategoryID,
+        arg.PositionID,
+        arg.ID,
+    )
+    var i Brag
+    err := row.Scan(
+        &i.ID,
+        &i.OwnerID,
+        &i.Title,
+        &i.Description,
+        &i.CategoryID,
+        &i.PositionID,
+        &i.CreatedAt,
+        &i.UpdatedAt,
+    )
+    return i, err
 }

@@ -5,38 +5,58 @@
 package queries
 
 import (
-	"database/sql"
+    "database/sql"
 )
 
 type Brag struct {
-	ID          int64        `db:"id" json:"id"`
-	OwnerID     int64        `db:"owner_id" json:"owner_id"`
-	Title       string       `db:"title" json:"title"`
-	Description string       `db:"description" json:"description"`
-	Category    int64        `db:"category" json:"category"`
-	CreatedAt   sql.NullTime `db:"created_at" json:"created_at"`
-	UpdatedAt   sql.NullTime `db:"updated_at" json:"updated_at"`
+    ID          int64         `db:"id" json:"id"`
+    OwnerID     int64         `db:"owner_id" json:"owner_id"`
+    Title       string        `db:"title" json:"title"`
+    Description string        `db:"description" json:"description"`
+    CategoryID  int64         `db:"category_id" json:"category_id"`
+    PositionID  sql.NullInt64 `db:"position_id" json:"position_id"`
+    CreatedAt   sql.NullTime  `db:"created_at" json:"created_at"`
+    UpdatedAt   sql.NullTime  `db:"updated_at" json:"updated_at"`
 }
 
 type BragTag struct {
-	BragID int64 `db:"brag_id" json:"brag_id"`
-	TagID  int64 `db:"tag_id" json:"tag_id"`
+    BragID int64 `db:"brag_id" json:"brag_id"`
+    TagID  int64 `db:"tag_id" json:"tag_id"`
+}
+
+type Category struct {
+    ID          int64          `db:"id" json:"id"`
+    Name        string         `db:"name" json:"name"`
+    Description sql.NullString `db:"description" json:"description"`
+    CreatedAt   sql.NullTime   `db:"created_at" json:"created_at"`
+    UpdatedAt   sql.NullTime   `db:"updated_at" json:"updated_at"`
+}
+
+type Position struct {
+    ID        int64          `db:"id" json:"id"`
+    UserID    int64          `db:"user_id" json:"user_id"`
+    Title     string         `db:"title" json:"title"`
+    Company   sql.NullString `db:"company" json:"company"`
+    StartDate sql.NullTime   `db:"start_date" json:"start_date"`
+    EndDate   sql.NullTime   `db:"end_date" json:"end_date"`
+    CreatedAt sql.NullTime   `db:"created_at" json:"created_at"`
+    UpdatedAt sql.NullTime   `db:"updated_at" json:"updated_at"`
 }
 
 type Tag struct {
-	ID        int64        `db:"id" json:"id"`
-	Name      string       `db:"name" json:"name"`
-	OwnerID   int64        `db:"owner_id" json:"owner_id"`
-	CreatedAt sql.NullTime `db:"created_at" json:"created_at"`
+    ID        int64        `db:"id" json:"id"`
+    Name      string       `db:"name" json:"name"`
+    OwnerID   int64        `db:"owner_id" json:"owner_id"`
+    CreatedAt sql.NullTime `db:"created_at" json:"created_at"`
 }
 
 type User struct {
-	ID        int64          `db:"id" json:"id"`
-	Name      string         `db:"name" json:"name"`
-	Email     string         `db:"email" json:"email"`
-	JobTitle  sql.NullString `db:"job_title" json:"job_title"`
-	Company   sql.NullString `db:"company" json:"company"`
-	Locale    string         `db:"locale" json:"locale"`
-	CreatedAt sql.NullTime   `db:"created_at" json:"created_at"`
-	UpdatedAt sql.NullTime   `db:"updated_at" json:"updated_at"`
+    ID        int64          `db:"id" json:"id"`
+    Name      string         `db:"name" json:"name"`
+    Email     string         `db:"email" json:"email"`
+    JobTitle  sql.NullString `db:"job_title" json:"job_title"`
+    Company   sql.NullString `db:"company" json:"company"`
+    Locale    string         `db:"locale" json:"locale"`
+    CreatedAt sql.NullTime   `db:"created_at" json:"created_at"`
+    UpdatedAt sql.NullTime   `db:"updated_at" json:"updated_at"`
 }
