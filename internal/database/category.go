@@ -60,7 +60,7 @@ func (r *sqliteCategoryRepository) Create(ctx context.Context, category *domain.
     
     dbCategory, err := r.db.Queries().CreateCategory(ctx, queries.CreateCategoryParams{
         Name:        string(category.Name),
-        Description: category.Description,
+        Description: sql.NullString{String: category.Description, Valid: category.Description != ""},
     })
     if err != nil {
         return nil, fmt.Errorf("failed to create category: %w", err)
@@ -75,7 +75,7 @@ func (r *sqliteCategoryRepository) Update(ctx context.Context, category *domain.
     
     dbCategory, err := r.db.Queries().UpdateCategory(ctx, queries.UpdateCategoryParams{
         Name:        string(category.Name),
-        Description: category.Description,
+        Description: sql.NullString{String: category.Description, Valid: category.Description != ""},
         ID:          category.ID,
     })
     if err != nil {
@@ -104,7 +104,10 @@ func (r *sqliteCategoryRepository) toDomainCategory(dbCategory *queries.Category
     category := &domain.Category{
         ID:          dbCategory.ID,
         Name:        domain.CategoryName(dbCategory.Name),
-        Description: dbCategory.Description,
+    }
+    
+    if dbCategory.Description.Valid {
+        category.Description = dbCategory.Description.String
     }
     
     if dbCategory.CreatedAt.Valid {

@@ -63,7 +63,7 @@ func (r *sqlitePositionRepository) Create(ctx context.Context, position *domain.
     dbPosition, err := r.db.Queries().CreatePosition(ctx, queries.CreatePositionParams{
         UserID:    position.User.ID,
         Title:     position.Title,
-        Company:   position.Company,
+        Company:   sql.NullString{String: position.Company, Valid: position.Company != ""},
         StartDate: startDate,
         EndDate:   endDate,
     })
@@ -88,7 +88,7 @@ func (r *sqlitePositionRepository) Update(ctx context.Context, position *domain.
     
     dbPosition, err := r.db.Queries().UpdatePosition(ctx, queries.UpdatePositionParams{
         Title:     position.Title,
-        Company:   position.Company,
+        Company:   sql.NullString{String: position.Company, Valid: position.Company != ""},
         StartDate: startDate,
         EndDate:   endDate,
         ID:        position.ID,
@@ -155,7 +155,10 @@ func (r *sqlitePositionRepository) toDomainPosition(ctx context.Context, dbPosit
         ID:      dbPosition.ID,
         User:    *user,
         Title:   dbPosition.Title,
-        Company: dbPosition.Company,
+    }
+    
+    if dbPosition.Company.Valid {
+        position.Company = dbPosition.Company.String
     }
     
     if dbPosition.StartDate.Valid {

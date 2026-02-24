@@ -1,3 +1,6 @@
+-- name: CountBragsByPosition :one
+SELECT COUNT(*) FROM brags WHERE position_id = ?;
+
 -- name: GetPosition :one
 SELECT * FROM positions WHERE id = ? LIMIT 1;
 

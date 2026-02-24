@@ -22,8 +22,8 @@ func (q *Queries) CountBragsByPosition(ctx context.Context, positionID int64) (i
 }
 
 const createPosition = `-- name: CreatePosition :one
-INSERT INTO positions (user_id, title, company, start_date, end_date, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+INSERT INTO positions (user_id, title, company, start_date, end_date, created_at)
+VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
 RETURNING id, user_id, title, company, start_date, end_date, created_at, updated_at
 `
 
@@ -87,7 +87,9 @@ func (q *Queries) GetPosition(ctx context.Context, id int64) (Position, error) {
 }
 
 const listPositionsByUser = `-- name: ListPositionsByUser :many
-SELECT id, user_id, title, company, start_date, end_date, created_at, updated_at FROM positions WHERE user_id = ? ORDER BY start_date DESC
+SELECT id, user_id, title, company, start_date, end_date, created_at, updated_at FROM positions
+WHERE user_id = ?
+ORDER BY CASE WHEN start_date IS NULL THEN 1 ELSE 0 END, start_date DESC, created_at DESC
 `
 
 func (q *Queries) ListPositionsByUser(ctx context.Context, userID int64) ([]Position, error) {
@@ -123,7 +125,7 @@ func (q *Queries) ListPositionsByUser(ctx context.Context, userID int64) ([]Posi
 }
 
 const updatePosition = `-- name: UpdatePosition :one
-UPDATE positions 
+UPDATE positions
 SET title = ?, company = ?, start_date = ?, end_date = ?, updated_at = CURRENT_TIMESTAMP
 WHERE id = ?
 RETURNING id, user_id, title, company, start_date, end_date, created_at, updated_at

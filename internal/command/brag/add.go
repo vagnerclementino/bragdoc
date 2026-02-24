@@ -41,7 +41,7 @@ func runAdd(ctx context.Context, bragService *service.BragService, userService *
     description, _ := cmd.Flags().GetString("description")
     categoryStr, _ := cmd.Flags().GetString("category")
     tagNames, _ := cmd.Flags().GetStringSlice("tags")
-    positionID, _ := cmd.Flags().GetInt64("position")
+    _, _ = cmd.Flags().GetInt64("position") // TODO: Implement position support
 
     // Parse category
     category, err := domain.ParseCategory(categoryStr)
