@@ -49,7 +49,7 @@ func runList(ctx context.Context, bragService *service.BragService, tagService *
 	if categoryStr != "" {
 		category, err := domain.ParseCategory(categoryStr)
 		if err != nil {
-			return fmt.Errorf("invalid category: %w. Valid options: project, achievement, skill, leadership, innovation", err)
+			return fmt.Errorf("invalid category: %w. Valid options: PROJECT, ACHIEVEMENT, SKILL, LEADERSHIP, INNOVATION", err)
 		}
 		brags, err = bragService.SearchByCategory(ctx, userID, category)
 		if err != nil {
