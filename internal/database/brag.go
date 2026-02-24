@@ -14,15 +14,15 @@ type sqliteBragRepository struct {
     db           *SQLiteDB
     userRepo     repository.UserRepository
     categoryRepo repository.CategoryRepository
-    positionRepo repository.PositionRepository
+    jobTitleRepo repository.JobTitleRepository
 }
 
-func NewBragRepository(db *SQLiteDB, userRepo repository.UserRepository, categoryRepo repository.CategoryRepository, positionRepo repository.PositionRepository) repository.BragRepository {
+func NewBragRepository(db *SQLiteDB, userRepo repository.UserRepository, categoryRepo repository.CategoryRepository, jobTitleRepo repository.JobTitleRepository) repository.BragRepository {
     return &sqliteBragRepository{
         db:           db,
         userRepo:     userRepo,
         categoryRepo: categoryRepo,
-        positionRepo: positionRepo,
+        jobTitleRepo: jobTitleRepo,
     }
 }
 
@@ -106,8 +106,8 @@ func (r *sqliteBragRepository) Insert(ctx context.Context, brag *domain.Brag) (*
     }
     
     var positionID sql.NullInt64
-    if brag.Position != nil {
-        positionID = sql.NullInt64{Int64: brag.Position.ID, Valid: true}
+    if brag.JobTitle != nil {
+        positionID = sql.NullInt64{Int64: brag.JobTitle.ID, Valid: true}
     }
 
     dbBrag, err := r.db.Queries().CreateBrag(ctx, queries.CreateBragParams{
@@ -115,7 +115,7 @@ func (r *sqliteBragRepository) Insert(ctx context.Context, brag *domain.Brag) (*
         Title:       brag.Title,
         Description: brag.Description,
         CategoryID:  categoryID,
-        PositionID:  positionID,
+        JobTitleID:  positionID,
     })
     if err != nil {
         return nil, fmt.Errorf("failed to create brag: %w", err)
@@ -131,15 +131,15 @@ func (r *sqliteBragRepository) Update(ctx context.Context, brag *domain.Brag) (*
     }
     
     var positionID sql.NullInt64
-    if brag.Position != nil {
-        positionID = sql.NullInt64{Int64: brag.Position.ID, Valid: true}
+    if brag.JobTitle != nil {
+        positionID = sql.NullInt64{Int64: brag.JobTitle.ID, Valid: true}
     }
 
     dbBrag, err := r.db.Queries().UpdateBrag(ctx, queries.UpdateBragParams{
         Title:       brag.Title,
         Description: brag.Description,
         CategoryID:  categoryID,
-        PositionID:  positionID,
+        JobTitleID:  positionID,
         ID:          brag.ID,
     })
     if err != nil {
@@ -185,21 +185,21 @@ func (r *sqliteBragRepository) toDomainBrag(ctx context.Context, dbBrag *queries
         return nil, fmt.Errorf("failed to get category: %w", err)
     }
 
-    // Get position if exists
-    var position *domain.Position
-    if dbBrag.PositionID.Valid {
-        pos, err := r.positionRepo.Get(ctx, dbBrag.PositionID.Int64)
+    // Get job title if exists
+    var jobTitle *domain.JobTitle
+    if dbBrag.JobTitleID.Valid {
+        jt, err := r.jobTitleRepo.Get(ctx, dbBrag.JobTitleID.Int64)
         if err != nil {
-            return nil, fmt.Errorf("failed to get position: %w", err)
+            return nil, fmt.Errorf("failed to get job title: %w", err)
         }
-        position = pos
+        jobTitle = jt
     }
 
     brag := &domain.Brag{
         ID:          dbBrag.ID,
         Owner:       *user,
         Category:    *category,
-        Position:    position,
+        JobTitle:    jobTitle,
         Title:       dbBrag.Title,
         Description: dbBrag.Description,
     }

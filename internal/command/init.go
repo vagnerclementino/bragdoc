@@ -100,10 +100,29 @@ func runInit(ctx context.Context, cmd *cobra.Command) error {
 		return fmt.Errorf("failed to create user: %w", err)
 	}
 
+	// Create job title entry if provided
+	if jobTitle != "" {
+		_, err := q.CreateJobTitle(ctx, queries.CreateJobTitleParams{
+			UserID:  createdUser.ID,
+			Title:   jobTitle,
+			Company: newNullString(company),
+		})
+		if err != nil {
+			return fmt.Errorf("failed to create job title: %w", err)
+		}
+	}
+
 	fmt.Println("✅ Bragdoc initialized successfully!")
 	fmt.Printf("📁 Configuration: %s\n", configManager.GetConfigPath())
 	fmt.Printf("🗄️  Database: %s\n", dbPath)
 	fmt.Printf("👤 User created: %s (ID: %d)\n", createdUser.Name, createdUser.ID)
+	if jobTitle != "" {
+		fmt.Printf("💼 Job Title: %s", jobTitle)
+		if company != "" {
+			fmt.Printf(" at %s", company)
+		}
+		fmt.Println()
+	}
 	fmt.Println("\n💡 Next steps:")
 	fmt.Println("   - Use 'bragdoc brag add' to create your first brag")
 	fmt.Println("   - Use 'bragdoc brag list' to view your brags")

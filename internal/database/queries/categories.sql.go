@@ -6,8 +6,8 @@
 package queries
 
 import (
-    "context"
-    "database/sql"
+	"context"
+	"database/sql"
 )
 
 const countBragsByCategory = `-- name: CountBragsByCategory :one
@@ -15,10 +15,10 @@ SELECT COUNT(*) FROM brags WHERE category_id = ?
 `
 
 func (q *Queries) CountBragsByCategory(ctx context.Context, categoryID int64) (int64, error) {
-    row := q.db.QueryRowContext(ctx, countBragsByCategory, categoryID)
-    var count int64
-    err := row.Scan(&count)
-    return count, err
+	row := q.db.QueryRowContext(ctx, countBragsByCategory, categoryID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }
 
 const createCategory = `-- name: CreateCategory :one
@@ -28,21 +28,21 @@ RETURNING id, name, description, created_at, updated_at
 `
 
 type CreateCategoryParams struct {
-    Name        string `db:"name" json:"name"`
-    Description string `db:"description" json:"description"`
+	Name        string         `db:"name" json:"name"`
+	Description sql.NullString `db:"description" json:"description"`
 }
 
 func (q *Queries) CreateCategory(ctx context.Context, arg CreateCategoryParams) (Category, error) {
-    row := q.db.QueryRowContext(ctx, createCategory, arg.Name, arg.Description)
-    var i Category
-    err := row.Scan(
-        &i.ID,
-        &i.Name,
-        &i.Description,
-        &i.CreatedAt,
-        &i.UpdatedAt,
-    )
-    return i, err
+	row := q.db.QueryRowContext(ctx, createCategory, arg.Name, arg.Description)
+	var i Category
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const deleteCategory = `-- name: DeleteCategory :exec
@@ -50,8 +50,8 @@ DELETE FROM categories WHERE id = ?
 `
 
 func (q *Queries) DeleteCategory(ctx context.Context, id int64) error {
-    _, err := q.db.ExecContext(ctx, deleteCategory, id)
-    return err
+	_, err := q.db.ExecContext(ctx, deleteCategory, id)
+	return err
 }
 
 const getCategory = `-- name: GetCategory :one
@@ -59,16 +59,16 @@ SELECT id, name, description, created_at, updated_at FROM categories WHERE id = 
 `
 
 func (q *Queries) GetCategory(ctx context.Context, id int64) (Category, error) {
-    row := q.db.QueryRowContext(ctx, getCategory, id)
-    var i Category
-    err := row.Scan(
-        &i.ID,
-        &i.Name,
-        &i.Description,
-        &i.CreatedAt,
-        &i.UpdatedAt,
-    )
-    return i, err
+	row := q.db.QueryRowContext(ctx, getCategory, id)
+	var i Category
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const getCategoryByName = `-- name: GetCategoryByName :one
@@ -76,16 +76,16 @@ SELECT id, name, description, created_at, updated_at FROM categories WHERE name 
 `
 
 func (q *Queries) GetCategoryByName(ctx context.Context, name string) (Category, error) {
-    row := q.db.QueryRowContext(ctx, getCategoryByName, name)
-    var i Category
-    err := row.Scan(
-        &i.ID,
-        &i.Name,
-        &i.Description,
-        &i.CreatedAt,
-        &i.UpdatedAt,
-    )
-    return i, err
+	row := q.db.QueryRowContext(ctx, getCategoryByName, name)
+	var i Category
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const listCategories = `-- name: ListCategories :many
@@ -93,32 +93,32 @@ SELECT id, name, description, created_at, updated_at FROM categories ORDER BY na
 `
 
 func (q *Queries) ListCategories(ctx context.Context) ([]Category, error) {
-    rows, err := q.db.QueryContext(ctx, listCategories)
-    if err != nil {
-        return nil, err
-    }
-    defer rows.Close()
-    var items []Category
-    for rows.Next() {
-        var i Category
-        if err := rows.Scan(
-            &i.ID,
-            &i.Name,
-            &i.Description,
-            &i.CreatedAt,
-            &i.UpdatedAt,
-        ); err != nil {
-            return nil, err
-        }
-        items = append(items, i)
-    }
-    if err := rows.Close(); err != nil {
-        return nil, err
-    }
-    if err := rows.Err(); err != nil {
-        return nil, err
-    }
-    return items, nil
+	rows, err := q.db.QueryContext(ctx, listCategories)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Category
+	for rows.Next() {
+		var i Category
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const updateCategory = `-- name: UpdateCategory :one
@@ -129,20 +129,20 @@ RETURNING id, name, description, created_at, updated_at
 `
 
 type UpdateCategoryParams struct {
-    Name        string `db:"name" json:"name"`
-    Description string `db:"description" json:"description"`
-    ID          int64  `db:"id" json:"id"`
+	Name        string         `db:"name" json:"name"`
+	Description sql.NullString `db:"description" json:"description"`
+	ID          int64          `db:"id" json:"id"`
 }
 
 func (q *Queries) UpdateCategory(ctx context.Context, arg UpdateCategoryParams) (Category, error) {
-    row := q.db.QueryRowContext(ctx, updateCategory, arg.Name, arg.Description, arg.ID)
-    var i Category
-    err := row.Scan(
-        &i.ID,
-        &i.Name,
-        &i.Description,
-        &i.CreatedAt,
-        &i.UpdatedAt,
-    )
-    return i, err
+	row := q.db.QueryRowContext(ctx, updateCategory, arg.Name, arg.Description, arg.ID)
+	var i Category
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }

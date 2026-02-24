@@ -6,7 +6,7 @@ import "time"
 type Brag struct {
     ID          int64
     Owner       User
-    Position    *Position
+    JobTitle    *JobTitle
     Category    Category
     Title       string
     Description string

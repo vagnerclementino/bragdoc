@@ -31,23 +31,30 @@ func main() {
         }
     }(db)
 
+    // Run migrations automatically
+    ctx := context.Background()
+    if err := db.Migrate(ctx); err != nil {
+        log.Fatalf("failed to run migrations: %v", err)
+    }
+
     sqliteDB := database.NewSQLiteDB(db.Conn())
 
     // Initialize repositories
     userRepo := database.NewUserRepository(sqliteDB)
     categoryRepo := database.NewCategoryRepository(sqliteDB)
-    positionRepo := database.NewPositionRepository(sqliteDB, userRepo)
-    bragRepo := database.NewBragRepository(sqliteDB, userRepo, categoryRepo, positionRepo)
+    jobTitleRepo := database.NewJobTitleRepository(sqliteDB, userRepo)
+    bragRepo := database.NewBragRepository(sqliteDB, userRepo, categoryRepo, jobTitleRepo)
     tagRepo := database.NewTagRepository(sqliteDB)
 
     // Initialize services
     bragService := service.NewBragService(bragRepo)
     userService := service.NewUserService(userRepo)
     tagService := service.NewTagService(tagRepo)
+    jobTitleService := service.NewJobTitleService(jobTitleRepo)
     docService := service.NewDocumentService(userService)
 
     // Create root command with dependencies
-    rootCmd := command.NewRootCmd(bragService, userService, tagService, docService)
+    rootCmd := command.NewRootCmd(bragService, userService, tagService, jobTitleService, docService)
     if err := rootCmd.Execute(); err != nil {
         os.Exit(1)
     }

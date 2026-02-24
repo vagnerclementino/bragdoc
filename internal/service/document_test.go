@@ -103,13 +103,14 @@ func TestDocumentService_GetCategoryList(t *testing.T) {
 
     for _, tt := range tests {
         t.Run(tt.name, func(t *testing.T) {
-            categories := docService.getCategoryList(tt.brags)
+            grouped := docService.groupBragsByCategory(tt.brags)
+            categories := docService.getCategoryList(grouped)
             assert.ElementsMatch(t, tt.expected, categories)
         })
     }
 }
 
-func TestDocumentService_GenerateDocument(t *testing.T) {
+func TestDocumentService_Generate(t *testing.T) {
     mockUserService := &MockUserService{}
     docService := NewDocumentService(mockUserService)
 
@@ -145,58 +146,52 @@ func TestDocumentService_GenerateDocument(t *testing.T) {
         },
     }
 
-    mockUserService.On("GetByID", user.ID).Return(user, nil)
+    mockUserService.On("GetByID", mock.Anything, user.ID).Return(user, nil)
 
-    doc, err := docService.GenerateDocument(user.ID, brags)
+    doc, err := docService.Generate(context.Background(), brags, user.ID, GenerateOptions{
+        Format: domain.FormatMarkdown,
+    })
 
     assert.NoError(t, err)
     assert.NotNil(t, doc)
-    assert.Contains(t, doc.Content, "John Doe")
-    assert.Contains(t, doc.Content, "Tech Corp")
-    assert.Contains(t, doc.Content, "Senior Developer")
-    assert.Contains(t, doc.Content, "Major Project Delivery")
-    assert.Contains(t, doc.Content, "Team Leadership")
-    assert.Contains(t, doc.Content, "ACHIEVEMENT")
-    assert.Contains(t, doc.Content, "LEADERSHIP")
+    assert.NotEmpty(t, doc.Content)
+    assert.Contains(t, string(doc.Content), "John Doe")
+    assert.Contains(t, string(doc.Content), "Tech Corp")
+    assert.Contains(t, string(doc.Content), "Senior Developer")
+    assert.Contains(t, string(doc.Content), "Major Project Delivery")
+    assert.Contains(t, string(doc.Content), "Team Leadership")
 
     mockUserService.AssertExpectations(t)
 }
 
-func TestDocumentService_GenerateDocument_EmptyBrags(t *testing.T) {
+func TestDocumentService_Generate_EmptyBrags(t *testing.T) {
     mockUserService := &MockUserService{}
     docService := NewDocumentService(mockUserService)
 
-    user := &domain.User{
-        ID:        1,
-        Name:      "John Doe",
-        Email:     "john@example.com",
-        JobTitle:  "Senior Developer",
-        Company:   "Tech Corp",
-        Locale:    "en-US",
-        CreatedAt: time.Now(),
+    doc, err := docService.Generate(context.Background(), []*domain.Brag{}, 1, GenerateOptions{
+        Format: domain.FormatMarkdown,
+    })
+
+    assert.Error(t, err)
+    assert.Nil(t, doc)
+    assert.Contains(t, err.Error(), "no brags provided")
+}
+
+func TestDocumentService_Generate_UserNotFound(t *testing.T) {
+    mockUserService := &MockUserService{}
+    docService := NewDocumentService(mockUserService)
+
+    achievementCategory, _ := domain.ParseCategory("ACHIEVEMENT")
+    user := &domain.User{ID: 1, Name: "Test", Email: "test@example.com", Locale: "en-US"}
+    brags := []*domain.Brag{
+        {ID: 1, Owner: *user, Title: "Test", Description: "Test", Category: achievementCategory},
     }
 
-    mockUserService.On("GetByID", user.ID).Return(user, nil)
+    mockUserService.On("GetByID", mock.Anything, int64(999)).Return(nil, assert.AnError)
 
-    doc, err := docService.GenerateDocument(user.ID, []*domain.Brag{})
-
-    assert.NoError(t, err)
-    assert.NotNil(t, doc)
-    assert.Contains(t, doc.Content, "John Doe")
-    assert.Contains(t, doc.Content, "Tech Corp")
-    assert.Contains(t, doc.Content, "Senior Developer")
-    assert.Contains(t, doc.Content, "No brags to display")
-
-    mockUserService.AssertExpectations(t)
-}
-
-func TestDocumentService_GenerateDocument_UserNotFound(t *testing.T) {
-    mockUserService := &MockUserService{}
-    docService := NewDocumentService(mockUserService)
-
-    mockUserService.On("GetByID", int64(999)).Return(nil, assert.AnError)
-
-    doc, err := docService.GenerateDocument(999, []*domain.Brag{})
+    doc, err := docService.Generate(context.Background(), brags, 999, GenerateOptions{
+        Format: domain.FormatMarkdown,
+    })
 
     assert.Error(t, err)
     assert.Nil(t, doc)
@@ -210,7 +205,7 @@ type MockUserService struct {
 }
 
 func (m *MockUserService) GetByID(ctx context.Context, id int64) (*domain.User, error) {
-    args := m.Called(id)
+    args := m.Called(ctx, id)
     if args.Get(0) == nil {
         return nil, args.Error(1)
     }

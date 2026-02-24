@@ -9,7 +9,7 @@ import (
 )
 
 // NewRootCmd creates the root command for the bragdoc CLI.
-func NewRootCmd(bragService *service.BragService, userService *service.UserService, tagService *service.TagService, docService *service.DocumentService) *cobra.Command {
+func NewRootCmd(bragService *service.BragService, userService *service.UserService, tagService *service.TagService, jobTitleService *service.JobTitleService, docService *service.DocumentService) *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:   "bragdoc",
 		Short: "Bragdoc - Document your professional achievements",
@@ -18,7 +18,7 @@ build their own "Brag Documents" to track and showcase their professional achiev
 	}
 
 	rootCmd.AddCommand(
-		brag.NewBragCmd(bragService, userService, tagService),
+		brag.NewBragCmd(bragService, userService, tagService, jobTitleService),
 		tag.NewTagCmd(tagService),
 		doc.NewDocCmd(docService, bragService, tagService),
 		NewInitCmd(),

@@ -12,14 +12,14 @@ import (
 )
 
 // NewEditCmd creates a new command for editing brag entries.
-func NewEditCmd(bragService *service.BragService, tagService *service.TagService) *cobra.Command {
+func NewEditCmd(bragService *service.BragService, tagService *service.TagService, jobTitleService *service.JobTitleService) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "edit <id>",
 		Short: "Edit an existing brag entry",
 		Long:  `Edit an existing brag entry by ID`,
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runEdit(cmd.Context(), bragService, tagService, cmd, args)
+			return runEdit(cmd.Context(), bragService, tagService, jobTitleService, cmd, args)
 		},
 	}
 
@@ -27,12 +27,13 @@ func NewEditCmd(bragService *service.BragService, tagService *service.TagService
 	cmd.Flags().StringP("title", "t", "", "New brag title")
 	cmd.Flags().StringP("description", "d", "", "New brag description")
 	cmd.Flags().StringP("category", "c", "", "New brag category (project|achievement|skill|leadership|innovation)")
+	cmd.Flags().StringP("job", "j", "", "New job title name")
 	cmd.Flags().StringSliceP("tags", "", []string{}, "New comma-separated list of tags (replaces existing tags)")
 
 	return cmd
 }
 
-func runEdit(ctx context.Context, bragService *service.BragService, tagService *service.TagService, cmd *cobra.Command, args []string) error {
+func runEdit(ctx context.Context, bragService *service.BragService, tagService *service.TagService, jobTitleService *service.JobTitleService, cmd *cobra.Command, args []string) error {
 	// Parse brag ID
 	id, err := strconv.ParseInt(args[0], 10, 64)
 	if err != nil {
@@ -49,10 +50,12 @@ func runEdit(ctx context.Context, bragService *service.BragService, tagService *
 	title, _ := cmd.Flags().GetString("title")
 	description, _ := cmd.Flags().GetString("description")
 	categoryStr, _ := cmd.Flags().GetString("category")
+	jobName, _ := cmd.Flags().GetString("job")
 	tagNames, _ := cmd.Flags().GetStringSlice("tags")
 	tagsChanged := cmd.Flags().Changed("tags")
+	jobChanged := cmd.Flags().Changed("job")
 
-	if title == "" && description == "" && categoryStr == "" && !tagsChanged {
+	if title == "" && description == "" && categoryStr == "" && !tagsChanged && !jobChanged {
 		return fmt.Errorf("at least one field must be provided to update")
 	}
 
@@ -71,6 +74,22 @@ func runEdit(ctx context.Context, bragService *service.BragService, tagService *
 			return fmt.Errorf("invalid category: %w. Valid options: PROJECT, ACHIEVEMENT, SKILL, LEADERSHIP, INNOVATION", err)
 		}
 		brag.Category = category
+	}
+
+	// Update job title if provided
+	if jobChanged {
+		if jobName != "" {
+			// TODO: Get actual user ID from config/session
+			userID := int64(1)
+			jobTitle, err := jobTitleService.GetOrCreate(ctx, userID, jobName, brag.Owner.Company)
+			if err != nil {
+				return fmt.Errorf("failed to get or create job title: %w", err)
+			}
+			brag.JobTitle = jobTitle
+		} else {
+			// Empty string means remove job title
+			brag.JobTitle = nil
+		}
 	}
 
 	brag.UpdatedAt = time.Now()
@@ -107,6 +126,9 @@ func runEdit(ctx context.Context, bragService *service.BragService, tagService *
 	fmt.Printf("✅ Brag updated successfully! ID: %d\n", updated.ID)
 	fmt.Printf("   Title: %s\n", updated.Title)
 	fmt.Printf("   Category: %s\n", updated.Category.String())
+	if updated.JobTitle != nil {
+		fmt.Printf("   Job Title: %s\n", updated.JobTitle.Title)
+	}
 
 	return nil
 }

@@ -107,10 +107,10 @@ func outputTable(brags []*domain.Brag) error {
 		}
 	}()
 
-	if _, err := fmt.Fprintln(w, "ID\tTITLE\tCATEGORY\tTAGS\tCREATED"); err != nil {
+	if _, err := fmt.Fprintln(w, "ID\tTITLE\tCATEGORY\tJOB TITLE\tTAGS\tCREATED"); err != nil {
 		return err
 	}
-	if _, err := fmt.Fprintln(w, "--\t-----\t--------\t----\t-------"); err != nil {
+	if _, err := fmt.Fprintln(w, "--\t-----\t--------\t---------\t----\t-------"); err != nil {
 		return err
 	}
 
@@ -126,14 +126,24 @@ func outputTable(brags []*domain.Brag) error {
 
 		// Truncate title if too long
 		title := brag.Title
-		if len(title) > 50 {
-			title = title[:47] + "..."
+		if len(title) > 40 {
+			title = title[:37] + "..."
 		}
 
-		if _, err := fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\n",
+		// Get job title
+		jobTitle := "-"
+		if brag.JobTitle != nil {
+			jobTitle = brag.JobTitle.Title
+			if len(jobTitle) > 25 {
+				jobTitle = jobTitle[:22] + "..."
+			}
+		}
+
+		if _, err := fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\n",
 			brag.ID,
 			title,
 			brag.Category.String(),
+			jobTitle,
 			tagsStr,
 			brag.CreatedAt.Format("2006-01-02"),
 		); err != nil {

@@ -15,11 +15,16 @@ import (
 
 // DocumentService provides business logic for document generation
 type DocumentService struct {
-	userService *UserService
+	userService UserServiceInterface
+}
+
+// UserServiceInterface defines the interface for user service operations
+type UserServiceInterface interface {
+	GetByID(ctx context.Context, id int64) (*domain.User, error)
 }
 
 // NewDocumentService creates a new document service
-func NewDocumentService(userService *UserService) *DocumentService {
+func NewDocumentService(userService UserServiceInterface) *DocumentService {
 	return &DocumentService{
 		userService: userService,
 	}

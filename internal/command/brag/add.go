@@ -10,13 +10,13 @@ import (
     "github.com/vagnerclementino/bragdoc/internal/service"
 )
 
-func NewAddCmd(bragService *service.BragService, userService *service.UserService, tagService *service.TagService) *cobra.Command {
+func NewAddCmd(bragService *service.BragService, userService *service.UserService, tagService *service.TagService, jobTitleService *service.JobTitleService) *cobra.Command {
     cmd := &cobra.Command{
         Use:   "add",
         Short: "Add a new brag entry",
         Long:  `Add a new brag entry to document your professional achievements`,
         RunE: func(cmd *cobra.Command, _ []string) error {
-            return runAdd(cmd.Context(), bragService, userService, tagService, cmd)
+            return runAdd(cmd.Context(), bragService, userService, tagService, jobTitleService, cmd)
         },
     }
 
@@ -31,17 +31,17 @@ func NewAddCmd(bragService *service.BragService, userService *service.UserServic
 
     cmd.Flags().StringP("category", "c", "ACHIEVEMENT", "Brag category (UPPERCASE: PROJECT|ACHIEVEMENT|SKILL|LEADERSHIP|INNOVATION)")
     cmd.Flags().StringSliceP("tags", "", []string{}, "Comma-separated list of tags")
-    cmd.Flags().Int64P("position", "p", 0, "Position ID (optional)")
+    cmd.Flags().StringP("job", "j", "", "Job Title name (optional, uses active job title if not specified)")
 
     return cmd
 }
 
-func runAdd(ctx context.Context, bragService *service.BragService, userService *service.UserService, tagService *service.TagService, cmd *cobra.Command) error {
+func runAdd(ctx context.Context, bragService *service.BragService, userService *service.UserService, tagService *service.TagService, jobTitleService *service.JobTitleService, cmd *cobra.Command) error {
     title, _ := cmd.Flags().GetString("title")
     description, _ := cmd.Flags().GetString("description")
     categoryStr, _ := cmd.Flags().GetString("category")
     tagNames, _ := cmd.Flags().GetStringSlice("tags")
-    _, _ = cmd.Flags().GetInt64("position") // TODO: Implement position support
+    jobTitleName, _ := cmd.Flags().GetString("job")
 
     // Parse category
     category, err := domain.ParseCategory(categoryStr)
@@ -58,17 +58,32 @@ func runAdd(ctx context.Context, bragService *service.BragService, userService *
         return fmt.Errorf("failed to get user: %w", err)
     }
 
+    // Handle job title
+    var jobTitle *domain.JobTitle
+    if jobTitleName != "" {
+        // Get or create job title by name
+        jobTitle, err = jobTitleService.GetOrCreate(ctx, userID, jobTitleName, user.Company)
+        if err != nil {
+            return fmt.Errorf("failed to get or create job title: %w", err)
+        }
+    } else {
+        // Try to get active job title
+        jobTitle, err = jobTitleService.GetActive(ctx, userID)
+        if err != nil {
+            // It's ok if there's no active job title
+            jobTitle = nil
+        }
+    }
+
     // Create brag
     newBrag := &domain.Brag{
         Owner:       *user,
         Title:       title,
         Description: description,
         Category:    category,
+        JobTitle:    jobTitle,
         CreatedAt:   time.Now(),
     }
-
-    // TODO: If positionID > 0, fetch position and set it
-    // For now, we'll leave Position as nil
 
     created, err := bragService.Create(ctx, newBrag)
     if err != nil {
@@ -85,6 +100,9 @@ func runAdd(ctx context.Context, bragService *service.BragService, userService *
     fmt.Printf("✅ Brag created successfully! ID: %d\n", created.ID)
     fmt.Printf("   Title: %s\n", created.Title)
     fmt.Printf("   Category: %s\n", created.Category.String())
+    if created.JobTitle != nil {
+        fmt.Printf("   Job Title: %s\n", created.JobTitle.Title)
+    }
     if len(tagNames) > 0 {
         fmt.Printf("   Tags: %s\n", strings.Join(tagNames, ", "))
     }
