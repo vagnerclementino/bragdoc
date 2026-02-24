@@ -11,6 +11,7 @@ import (
 )
 
 const countBragsByPosition = `-- name: CountBragsByPosition :one
+-- :param position_id int64
 SELECT COUNT(*) FROM brags WHERE position_id = ?
 `
 
