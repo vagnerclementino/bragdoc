@@ -15,7 +15,7 @@ var (
 
 // NewVersionCmd creates a new command for showing version information.
 func NewVersionCmd() *cobra.Command {
-	return &cobra.Command{
+	versionCmd := &cobra.Command{
 		Use:   "version",
 		Short: "Print the version number of Bragdoc",
 		Long:  `All software has versions. This is Bragdoc's`,
@@ -23,4 +23,8 @@ func NewVersionCmd() *cobra.Command {
 			fmt.Printf("Bragdoc %s (build: %s)\n", Version, Build)
 		},
 	}
+
+	versionCmd.AddCommand(NewVersionUpgradeCmd())
+
+	return versionCmd
 }

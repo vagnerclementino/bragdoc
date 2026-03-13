@@ -72,7 +72,7 @@ func displayBrag(brag *domain.Brag) {
 	fmt.Println(strings.Repeat("=", 80))
 	fmt.Printf("Title:       %s\n", brag.Title)
 	fmt.Printf("Category:    %s\n", brag.Category.String())
-	
+
 	if brag.JobTitle != nil {
 		fmt.Printf("Job Title:   %s", brag.JobTitle.Title)
 		if brag.JobTitle.Company != "" {
@@ -83,7 +83,7 @@ func displayBrag(brag *domain.Brag) {
 		}
 		fmt.Println()
 	}
-	
+
 	fmt.Printf("Created:     %s\n", brag.CreatedAt.Format("2006-01-02 15:04:05"))
 	if !brag.UpdatedAt.IsZero() {
 		fmt.Printf("Updated:     %s\n", brag.UpdatedAt.Format("2006-01-02 15:04:05"))

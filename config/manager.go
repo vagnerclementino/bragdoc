@@ -120,6 +120,9 @@ func (m *Manager) Load(_ context.Context) (*Config, error) {
 	m.viper.SetConfigFile(m.configFile)
 	m.viper.SetConfigType(string(m.format))
 
+	// Set defaults for new config fields
+	m.viper.SetDefault("update_checker.enabled", true)
+
 	// Enable environment variable substitution
 	m.viper.AutomaticEnv()
 	m.viper.SetEnvPrefix("BRAGDOC")
@@ -134,6 +137,11 @@ func (m *Manager) Load(_ context.Context) (*Config, error) {
 	var config Config
 	if err := m.viper.Unmarshal(&config); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
+	}
+
+	// Apply defaults for fields not present in config file
+	if !m.viper.InConfig("update_checker") {
+		config.UpdateChecker.Enabled = true
 	}
 
 	// Expand environment variables in paths
@@ -251,6 +259,12 @@ func (m *Manager) detectConfigFile() error {
 func (m *Manager) setViperConfig(config *Config) {
 	// Database configuration
 	m.viper.Set("database.path", config.Database.Path)
+
+	// Update checker configuration
+	m.viper.Set("update_checker.enabled", config.UpdateChecker.Enabled)
+	if !config.UpdateChecker.LastCheckedAt.IsZero() {
+		m.viper.Set("update_checker.last_checked_at", config.UpdateChecker.LastCheckedAt)
+	}
 }
 
 // ExpandHomeDir expands ~ to the user's home directory

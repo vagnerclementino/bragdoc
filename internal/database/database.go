@@ -5,10 +5,13 @@ import (
 	"database/sql"
 	"embed"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
-	"sort"
-	"strings"
+
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/sqlite3"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 
 	// SQLite driver
 	_ "github.com/mattn/go-sqlite3"
@@ -108,108 +111,106 @@ func (db *DB) Conn() *sql.DB {
 	return db.conn
 }
 
-// Migrate runs all pending migrations
-func (db *DB) Migrate(ctx context.Context) error {
-	// Create migrations table if it doesn't exist
-	_, err := db.conn.ExecContext(ctx, `
-		CREATE TABLE IF NOT EXISTS schema_migrations (
-			version TEXT PRIMARY KEY,
-			applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
-		)
-	`)
+// newMigrate creates a new migrate instance
+func (db *DB) newMigrate() (*migrate.Migrate, error) {
+	// Create source from embedded filesystem
+	sourceFS, err := fs.Sub(migrationsFS, "migrations")
 	if err != nil {
-		return fmt.Errorf("failed to create migrations table: %w", err)
+		return nil, fmt.Errorf("failed to create sub filesystem: %w", err)
 	}
 
-	// Get applied migrations
-	appliedMigrations, err := db.getAppliedMigrations(ctx)
+	sourceDriver, err := iofs.New(sourceFS, ".")
 	if err != nil {
-		return fmt.Errorf("failed to get applied migrations: %w", err)
+		return nil, fmt.Errorf("failed to create source driver: %w", err)
 	}
 
-	// Read migration files
-	entries, err := migrationsFS.ReadDir("migrations")
+	// Create database driver with NoLock to prevent closing the connection
+	dbDriver, err := sqlite3.WithInstance(db.conn, &sqlite3.Config{
+		NoTxWrap: false,
+	})
 	if err != nil {
-		return fmt.Errorf("failed to read migrations directory: %w", err)
+		return nil, fmt.Errorf("failed to create database driver: %w", err)
 	}
 
-	// Sort migration files
-	var migrationFiles []string
-	for _, entry := range entries {
-		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".sql") {
-			migrationFiles = append(migrationFiles, entry.Name())
-		}
+	// Create migrate instance
+	m, err := migrate.NewWithInstance("iofs", sourceDriver, "sqlite3", dbDriver)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create migrate instance: %w", err)
 	}
-	sort.Strings(migrationFiles)
 
-	// Apply pending migrations
-	for _, filename := range migrationFiles {
-		version := strings.TrimSuffix(filename, ".sql")
+	return m, nil
+}
 
-		// Skip if already applied
-		if appliedMigrations[version] {
-			continue
-		}
+// Migrate runs all pending migrations (up)
+func (db *DB) Migrate(_ context.Context) error {
+	m, err := db.newMigrate()
+	if err != nil {
+		return err
+	}
 
-		// Read migration file
-		content, err := migrationsFS.ReadFile(filepath.Join("migrations", filename))
-		if err != nil {
-			return fmt.Errorf("failed to read migration %s: %w", filename, err)
-		}
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		return fmt.Errorf("failed to run migrations: %w", err)
+	}
 
-		// Execute migration in a transaction
-		tx, err := db.conn.BeginTx(ctx, nil)
-		if err != nil {
-			return fmt.Errorf("failed to begin transaction for migration %s: %w", filename, err)
-		}
+	// Don't close - let the DB instance manage the connection lifecycle
+	return nil
+}
 
-		// Execute migration SQL
-		if _, err := tx.ExecContext(ctx, string(content)); err != nil {
-			if rbErr := tx.Rollback(); rbErr != nil {
-				return fmt.Errorf("failed to execute migration %s: %w (rollback error: %v)", filename, err, rbErr)
-			}
-			return fmt.Errorf("failed to execute migration %s: %w", filename, err)
-		}
+// MigrateDown rolls back the last migration
+func (db *DB) MigrateDown(ctx context.Context) error {
+	m, err := db.newMigrate()
+	if err != nil {
+		return err
+	}
 
-		// Record migration
-		if _, err := tx.ExecContext(ctx, "INSERT INTO schema_migrations (version) VALUES (?)", version); err != nil {
-			if rbErr := tx.Rollback(); rbErr != nil {
-				return fmt.Errorf("failed to record migration %s: %w (rollback error: %v)", filename, err, rbErr)
-			}
-			return fmt.Errorf("failed to record migration %s: %w", filename, err)
-		}
-
-		// Commit transaction
-		if err := tx.Commit(); err != nil {
-			return fmt.Errorf("failed to commit migration %s: %w", filename, err)
-		}
+	if err := m.Steps(-1); err != nil {
+		return fmt.Errorf("failed to rollback migration: %w", err)
 	}
 
 	return nil
 }
 
-// getAppliedMigrations returns a map of applied migration versions
-func (db *DB) getAppliedMigrations(ctx context.Context) (map[string]bool, error) {
-	rows, err := db.conn.QueryContext(ctx, "SELECT version FROM schema_migrations")
+// MigrateVersion returns the current migration version
+func (db *DB) MigrateVersion() (uint, bool, error) {
+	m, err := db.newMigrate()
 	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		if err := rows.Close(); err != nil {
-			fmt.Fprintf(os.Stderr, "warning: failed to close rows: %v\n", err)
-		}
-	}()
-
-	applied := make(map[string]bool)
-	for rows.Next() {
-		var version string
-		if err := rows.Scan(&version); err != nil {
-			return nil, err
-		}
-		applied[version] = true
+		return 0, false, err
 	}
 
-	return applied, rows.Err()
+	version, dirty, err := m.Version()
+	if err != nil && err != migrate.ErrNilVersion {
+		return 0, false, fmt.Errorf("failed to get migration version: %w", err)
+	}
+
+	return version, dirty, nil
+}
+
+// MigrateTo migrates to a specific version
+func (db *DB) MigrateTo(ctx context.Context, version uint) error {
+	m, err := db.newMigrate()
+	if err != nil {
+		return err
+	}
+
+	if err := m.Migrate(version); err != nil && err != migrate.ErrNoChange {
+		return fmt.Errorf("failed to migrate to version %d: %w", version, err)
+	}
+
+	return nil
+}
+
+// MigrateForce forces the migration version (use with caution)
+func (db *DB) MigrateForce(version int) error {
+	m, err := db.newMigrate()
+	if err != nil {
+		return err
+	}
+
+	if err := m.Force(version); err != nil {
+		return fmt.Errorf("failed to force migration version: %w", err)
+	}
+
+	return nil
 }
 
 // Transaction executes a function within a database transaction

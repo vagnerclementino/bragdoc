@@ -1,11 +1,9 @@
-// Package command provides CLI commands for the bragdoc application.
 package command
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -72,22 +70,23 @@ func runInit(ctx context.Context, cmd *cobra.Command) error {
 		return fmt.Errorf("failed to create config: %w", err)
 	}
 
+	// Create database and run migrations
 	dbPath := configManager.GetDatabasePath()
 	db, err := database.New(dbPath)
 	if err != nil {
-		return fmt.Errorf("failed to create database: %w", err)
+		return fmt.Errorf("failed to open database: %w", err)
 	}
-	defer func(db *database.DB) {
-		err := db.Close()
-		if err != nil {
-			log.Fatal("failed to close database connection: %w", err)
+	defer func() {
+		if closeErr := db.Close(); closeErr != nil {
+			fmt.Fprintf(os.Stderr, "warning: failed to close database: %v\n", closeErr)
 		}
-	}(db)
+	}()
 
 	if err := db.Migrate(ctx); err != nil {
-		return fmt.Errorf("failed to setup database: %w", err)
+		return fmt.Errorf("failed to run migrations: %w", err)
 	}
 
+	// Create user
 	q := queries.New(db.Conn())
 	createdUser, err := q.CreateUser(ctx, queries.CreateUserParams{
 		Name:     name,
@@ -100,7 +99,7 @@ func runInit(ctx context.Context, cmd *cobra.Command) error {
 		return fmt.Errorf("failed to create user: %w", err)
 	}
 
-	// Create job title entry if provided
+	// Create job title if provided
 	if jobTitle != "" {
 		_, err := q.CreateJobTitle(ctx, queries.CreateJobTitleParams{
 			UserID:  createdUser.ID,
@@ -115,7 +114,7 @@ func runInit(ctx context.Context, cmd *cobra.Command) error {
 	fmt.Println("✅ Bragdoc initialized successfully!")
 	fmt.Printf("📁 Configuration: %s\n", configManager.GetConfigPath())
 	fmt.Printf("🗄️  Database: %s\n", dbPath)
-	fmt.Printf("👤 User created: %s (ID: %d)\n", createdUser.Name, createdUser.ID)
+	fmt.Printf("👤 User: %s (%s)\n", createdUser.Name, createdUser.Email)
 	if jobTitle != "" {
 		fmt.Printf("💼 Job Title: %s", jobTitle)
 		if company != "" {

@@ -9,7 +9,8 @@ import (
 // User data (name, email, job_title, company, locale) is stored in the database
 // and should not be duplicated here
 type Config struct {
-	Database DatabaseConfig `yaml:"database" json:"database" toml:"database"`
+	Database      DatabaseConfig      `yaml:"database" json:"database" toml:"database"`
+	UpdateChecker UpdateCheckerConfig `yaml:"update_checker" json:"update_checker" toml:"update_checker"`
 	// Future configurations can be added here as needed:
 	// AI       AIConfig       `yaml:"ai,omitempty" json:"ai,omitempty" toml:"ai,omitempty"`
 	// Server   ServerConfig   `yaml:"server,omitempty" json:"server,omitempty" toml:"server,omitempty"`
@@ -19,6 +20,12 @@ type Config struct {
 // DatabaseConfig represents database configuration
 type DatabaseConfig struct {
 	Path string `yaml:"path" json:"path" toml:"path"` // Path to SQLite database file
+}
+
+// UpdateCheckerConfig represents update checker configuration
+type UpdateCheckerConfig struct {
+	Enabled       bool      `yaml:"enabled" json:"enabled" toml:"enabled"`                         // Enable update checks
+	LastCheckedAt time.Time `yaml:"last_checked_at" json:"last_checked_at" toml:"last_checked_at"` // Last check timestamp
 }
 
 // Commented out configurations for future use:
@@ -73,6 +80,9 @@ func GetDefaultConfig(configDir string) *Config {
 	return &Config{
 		Database: DatabaseConfig{
 			Path: configDir + "/bragdoc.db",
+		},
+		UpdateChecker: UpdateCheckerConfig{
+			Enabled: true, // Enabled by default
 		},
 	}
 }
