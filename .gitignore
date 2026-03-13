@@ -43,3 +43,4 @@ coverage.txt
 
 # Smoke test directory
 .bragdoc
+.kiro/
