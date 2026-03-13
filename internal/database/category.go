@@ -34,7 +34,7 @@ func (r *sqliteCategoryRepository) GetByName(ctx context.Context, name domain.Ca
 	dbCategory, err := r.db.Queries().GetCategoryByName(ctx, string(name))
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("category not found: %s", name)
+			return nil, fmt.Errorf("category not found: %s: %w", name, sql.ErrNoRows)
 		}
 		return nil, fmt.Errorf("failed to get category by name: %w", err)
 	}

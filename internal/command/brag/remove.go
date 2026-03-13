@@ -124,6 +124,10 @@ func parseIDs(idsStr string) ([]int64, error) {
 				return nil, fmt.Errorf("invalid range %s: start must be <= end", part)
 			}
 
+			if end-start > 1000 {
+				return nil, fmt.Errorf("invalid range %s: range too large (max 1000)", part)
+			}
+
 			for i := start; i <= end; i++ {
 				result = append(result, i)
 			}

@@ -270,7 +270,7 @@ func (m *Manager) setViperConfig(config *Config) {
 // ExpandHomeDir expands ~ to the user's home directory
 // This function is exported for testing purposes
 func ExpandHomeDir(path string) string {
-	if !strings.HasPrefix(path, "~") {
+	if !strings.HasPrefix(path, "~/") && path != "~" {
 		return path
 	}
 

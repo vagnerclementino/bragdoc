@@ -30,24 +30,24 @@ func (s *UserService) validateUser(user *domain.User) error {
 		return errors.New("user cannot be nil")
 	}
 
-	// Structural validations
-	name := strings.TrimSpace(user.Name)
-	if name == "" {
+	// Normalize and validate
+	user.Name = strings.TrimSpace(user.Name)
+	if user.Name == "" {
 		return errors.New("user name cannot be empty")
 	}
 
-	email := strings.TrimSpace(user.Email)
-	if email == "" {
+	user.Email = strings.TrimSpace(user.Email)
+	if user.Email == "" {
 		return errors.New("user email cannot be empty")
 	}
 
 	// Business validations
-	if len(name) < 2 {
-		return fmt.Errorf("user name must be at least 2 characters, got %d", len(name))
+	if len(user.Name) < 2 {
+		return fmt.Errorf("user name must be at least 2 characters, got %d", len(user.Name))
 	}
 
-	if !emailRegex.MatchString(email) {
-		return fmt.Errorf("invalid email format: %s", email)
+	if !emailRegex.MatchString(user.Email) {
+		return fmt.Errorf("invalid email format: %s", user.Email)
 	}
 
 	// Default locale to en-US if empty

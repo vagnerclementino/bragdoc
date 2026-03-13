@@ -60,7 +60,7 @@ CREATE TABLE brags (
     job_title_id INTEGER,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME,
-    FOREIGN KEY (owner_id) REFERENCES users(id),
+    FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (category_id) REFERENCES categories(id),
     FOREIGN KEY (job_title_id) REFERENCES job_titles(id)
 );
@@ -72,7 +72,7 @@ CREATE TABLE tags (
     owner_id INTEGER NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(name, owner_id),
-    FOREIGN KEY (owner_id) REFERENCES users(id)
+    FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Brag tags junction table

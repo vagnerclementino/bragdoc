@@ -163,6 +163,11 @@ func (r *sqliteBragRepository) getCategoryID(ctx context.Context, category domai
 		return existing.ID, nil
 	}
 
+	// Only create if not found, propagate other errors
+	if !errors.Is(err, sql.ErrNoRows) {
+		return 0, fmt.Errorf("failed to get category: %w", err)
+	}
+
 	// Category doesn't exist, create it
 	created, err := r.categoryRepo.Create(ctx, &category)
 	if err != nil {
