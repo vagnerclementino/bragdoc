@@ -6,19 +6,21 @@ on:
       - main
   pull_request:
 
-concurrency: quality
+concurrency: pipeline-quality
 
 jobs:
-  quality:
+  pipeline-quality:
     runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         name: checkout
 
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         name: setup-go
         with:
-          go-version: 1.21
+          go-version: '1.25'
 
       - name: Check go mod
         run: |
@@ -26,13 +28,20 @@ jobs:
           git diff --exit-code go.mod
 
       - name: lint
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@v7
         with:
-          version: v1.54
+          version: v2.6.1
           args: --issues-exit-code=0 --timeout 3m0s
           only-new-issues: true
           skip-cache: true
-      - name: Run-test
+
+      - name: Run tests
         run: |
           go mod tidy
-          go test ./...
+          go test ./... -v -coverprofile=coverage.txt -covermode=atomic
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.txt
+          fail_ci_if_error: false

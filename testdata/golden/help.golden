@@ -1,0 +1,19 @@
+Bragdoc is a powerful command-line interface (CLI) tool designed to help individuals
+build their own "Brag Documents" to track and showcase their professional achievements.
+
+Usage:
+  bragdoc [command]
+
+Available Commands:
+  brag        Manage your brag entries
+  completion  Generate the autocompletion script for the specified shell
+  doc         Generate brag documents
+  help        Help about any command
+  init        Initialize Bragdoc configuration and database
+  tag         Manage tags for organizing brags
+  version     Print the version number of Bragdoc
+
+Flags:
+  -h, --help   help for bragdoc
+
+Use "bragdoc [command] --help" for more information about a command.

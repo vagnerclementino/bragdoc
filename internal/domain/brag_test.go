@@ -6,51 +6,57 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestBrag_validate(t *testing.T) {
+func TestParseCategory(t *testing.T) {
 	tests := []struct {
-		name     string
-		scenario func(t *testing.T)
+		name        string
+		input       string
+		expected    Category
+		expectError bool
 	}{
-		{
-			name: "should returns an error when brag's description is empty",
-			scenario: func(t *testing.T) {
-
-				b := Brag{}
-				err := b.Validate()
-				assert.EqualError(t, err, "Brag.Description: the brag's description cannot be empty")
-			},
-		},
-		{
-			name: "should returns an error when brag's description is short",
-			scenario: func(t *testing.T) {
-
-				b := Brag{
-					Description: "hi",
-				}
-				err := b.Validate()
-				assert.EqualError(t, err, "Brag.Description: the brag's description is very short. Please provide a text with a minimum size of 10.")
-			},
-		},
-		{
-			name: "should returns an error when brag's details is short",
-			scenario: func(t *testing.T) {
-
-				description := "only a presentation"
-				b := Brag{
-					Description: "technical presentation for the team",
-					Details:     &description,
-				}
-				err := b.Validate()
-				assert.EqualError(t, err, "Brag.Details: the brag's details is very short. Please provide a text with a minimum size of 20.")
-
-			},
-		},
+		{"project", "project", Category{Name: CategoryNameProject, Description: "PROJECT DELIVERABLES"}, false},
+		{"achievement", "achievement", Category{Name: CategoryNameAchievement, Description: "MEASURABLE ACHIEVEMENTS"}, false},
+		{"skill", "skill", Category{Name: CategoryNameSkill, Description: "SKILLS AND LEARNING"}, false},
+		{"leadership", "leadership", Category{Name: CategoryNameLeadership, Description: "TEAM OR LEADERSHIP ACTS"}, false},
+		{"innovation", "innovation", Category{Name: CategoryNameInnovation, Description: "INNOVATIONS AND IMPROVEMENTS"}, false},
+		{"uppercase", "PROJECT", Category{Name: CategoryNameProject, Description: "PROJECT DELIVERABLES"}, false},
+		{"mixed case", "AcHiEvEmEnT", Category{Name: CategoryNameAchievement, Description: "MEASURABLE ACHIEVEMENTS"}, false},
+		{"with spaces", "  project  ", Category{Name: CategoryNameProject, Description: "PROJECT DELIVERABLES"}, false},
+		{"invalid", "invalid", Category{}, true},
+		{"empty", "", Category{}, true},
 	}
 
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			test.scenario(t)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := ParseCategory(tt.input)
+			if tt.expectError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expected.Name, result.Name)
+				assert.Equal(t, tt.expected.Description, result.Description)
+			}
+		})
+	}
+}
 
+func TestCategory_String(t *testing.T) {
+	tests := []struct {
+		category Category
+		expected string
+	}{
+		{Category{Name: CategoryNameProject}, "PROJECT"},
+		{Category{Name: CategoryNameAchievement}, "ACHIEVEMENT"},
+		{Category{Name: CategoryNameSkill}, "SKILL"},
+		{Category{Name: CategoryNameLeadership}, "LEADERSHIP"},
+		{Category{Name: CategoryNameInnovation}, "INNOVATION"},
+		{Category{Name: CategoryNameUnknown}, "UNKNOWN"},
+		{Category{}, "UNKNOWN"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.expected, func(t *testing.T) {
+			result := tt.category.String()
+			assert.Equal(t, tt.expected, result)
 		})
 	}
 }

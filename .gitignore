@@ -34,7 +34,13 @@ bragdoc
 
 #Test
 coverage.txt
+.coverdata/
 
 .idea/
 
 .DS_Store
+.aider*
+
+# Smoke test directory
+.bragdoc
+.kiro/

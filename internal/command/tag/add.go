@@ -1,0 +1,61 @@
+// Package tag provides commands for managing tags.
+package tag
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"strings"
+	"time"
+
+	"github.com/spf13/cobra"
+	"github.com/vagnerclementino/bragdoc/internal/domain"
+	"github.com/vagnerclementino/bragdoc/internal/service"
+)
+
+// NewAddCmd creates a new command for adding tags.
+func NewAddCmd(tagService *service.TagService) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "add",
+		Short: "Add a new tag",
+		Long:  `Create a new tag for organizing your brags`,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			return runAdd(cmd.Context(), tagService, cmd)
+		},
+	}
+
+	cmd.Flags().StringP("name", "n", "", "Tag name (required)")
+	if err := cmd.MarkFlagRequired("name"); err != nil {
+		fmt.Fprintf(os.Stderr, "warning: failed to mark flag as required: %v\n", err)
+	}
+
+	return cmd
+}
+
+func runAdd(ctx context.Context, tagService *service.TagService, cmd *cobra.Command) error {
+	name, _ := cmd.Flags().GetString("name")
+
+	// Trim and validate name
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return fmt.Errorf("tag name cannot be empty")
+	}
+
+	// TODO: Get actual user ID from config/session
+	userID := int64(1)
+
+	// Create tag
+	tag := &domain.Tag{
+		Name:      name,
+		OwnerID:   userID,
+		CreatedAt: time.Now(),
+	}
+
+	created, err := tagService.Create(ctx, tag)
+	if err != nil {
+		return fmt.Errorf("failed to create tag: %w", err)
+	}
+
+	fmt.Printf("✅ Tag created successfully! ID: %d, Name: %s\n", created.ID, created.Name)
+	return nil
+}

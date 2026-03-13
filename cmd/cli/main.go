@@ -1,14 +1,109 @@
+// Package main is the entry point for the bragdoc CLI application
 package main
 
 import (
-	"github.com/vagnerclementino/bragdoc/internal/handler"
+	"context"
+	"log"
 	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/vagnerclementino/bragdoc/config"
+	"github.com/vagnerclementino/bragdoc/internal/command"
+	"github.com/vagnerclementino/bragdoc/internal/database"
+	"github.com/vagnerclementino/bragdoc/internal/service"
 )
 
 func main() {
-	cmdHandler := handler.NewCmdHandler()
-	cmdHandler.CmdRegister("version")
-	if err := cmdHandler.Execute(); err != nil {
+	cfg, err := loadConfig()
+	if err != nil {
+		// If config doesn't exist, let commands handle it (e.g., init command)
+		rootCmd := command.NewRootCmd(nil, nil, nil, nil, nil)
+		if err := rootCmd.Execute(); err != nil {
+			os.Exit(1)
+		}
+		return
+	}
+
+	dbPath := getDatabasePath(cfg)
+
+	db, err := database.New(dbPath)
+	if err != nil {
+		log.Fatalf("failed to open database: %v", err)
+	}
+	defer func(db *database.DB) {
+		if err := db.Close(); err != nil {
+			log.Fatalf("failed to close database: %v", err)
+		}
+	}(db)
+
+	// Run migrations automatically
+	ctx := context.Background()
+	if err := db.Migrate(ctx); err != nil {
+		log.Fatalf("failed to run migrations: %v", err)
+	}
+
+	sqliteDB := database.NewSQLiteDB(db.Conn())
+
+	// Initialize repositories
+	userRepo := database.NewUserRepository(sqliteDB)
+	categoryRepo := database.NewCategoryRepository(sqliteDB)
+	jobTitleRepo := database.NewJobTitleRepository(sqliteDB, userRepo)
+	bragRepo := database.NewBragRepository(sqliteDB, userRepo, categoryRepo, jobTitleRepo)
+	tagRepo := database.NewTagRepository(sqliteDB)
+
+	// Initialize services
+	bragService := service.NewBragService(bragRepo)
+	userService := service.NewUserService(userRepo)
+	tagService := service.NewTagService(tagRepo)
+	jobTitleService := service.NewJobTitleService(jobTitleRepo)
+	docService := service.NewDocumentService(userService)
+
+	// Create root command with dependencies
+	rootCmd := command.NewRootCmd(bragService, userService, tagService, jobTitleService, docService)
+	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
+}
+
+func loadConfig() (*config.Config, error) {
+	mgr := config.NewManager()
+	cfg, err := mgr.Load(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	return cfg, nil
+}
+
+func getDatabasePath(cfg *config.Config) string {
+	if cfg.Database.Path != "" {
+		return expandPath(cfg.Database.Path)
+	}
+
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		homeDir = "."
+	}
+	return filepath.Join(homeDir, ".bragdoc", "bragdoc.db")
+}
+
+func expandPath(path string) string {
+	if !strings.HasPrefix(path, "~") {
+		return path
+	}
+
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return path
+	}
+
+	if path == "~" {
+		return homeDir
+	}
+
+	if strings.HasPrefix(path, "~/") {
+		return filepath.Join(homeDir, path[2:])
+	}
+
+	return path
 }
