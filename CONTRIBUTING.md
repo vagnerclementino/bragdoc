@@ -38,6 +38,7 @@ This project adheres to a code of conduct that all contributors are expected to 
 - **Go 1.21.1** or higher
 - **Make** (for build automation)
 - **Git** (for version control)
+- **direnv** (recommended, for environment isolation)
 
 ### Install Dependencies
 
@@ -47,6 +48,26 @@ go mod download
 
 # Verify installation
 make test
+```
+
+### Environment Isolation
+
+The project uses the `BRAGDOC_HOME` environment variable to separate development data from the official install (`~/.bragdoc`). We recommend using [direnv](https://direnv.net/) to manage this automatically:
+
+```bash
+# Copy the example and adjust if needed
+cp .envrc.example .envrc
+
+# Allow direnv to load the file
+direnv allow
+```
+
+This sets `BRAGDOC_HOME` to `.bragdoc` inside the project directory. When you leave the project folder, the variable is unset and `bragdoc` uses the default `~/.bragdoc` again.
+
+You can also set the variable manually:
+
+```bash
+export BRAGDOC_HOME=/path/to/dev/data
 ```
 
 ### Build the Project

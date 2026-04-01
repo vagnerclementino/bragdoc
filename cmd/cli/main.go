@@ -80,11 +80,7 @@ func getDatabasePath(cfg *config.Config) string {
 		return expandPath(cfg.Database.Path)
 	}
 
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		homeDir = "."
-	}
-	return filepath.Join(homeDir, ".bragdoc", "bragdoc.db")
+	return filepath.Join(config.ResolveBragdocHome(), "bragdoc.db")
 }
 
 func expandPath(path string) string {

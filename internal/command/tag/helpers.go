@@ -2,10 +2,9 @@ package tag
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 
 	"github.com/spf13/cobra"
+	"github.com/vagnerclementino/bragdoc/config"
 )
 
 // requiresInitialization returns a PreRunE function that checks if bragdoc is initialized
@@ -23,22 +22,6 @@ Example:
 
 // isInitialized checks if bragdoc has been initialized by looking for the config directory
 func isInitialized() bool {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return false
-	}
-
-	configDir := filepath.Join(homeDir, ".bragdoc")
-	dbPath := filepath.Join(configDir, "bragdoc.db")
-
-	// Check if both config directory and database exist
-	if _, err := os.Stat(configDir); os.IsNotExist(err) {
-		return false
-	}
-
-	if _, err := os.Stat(dbPath); os.IsNotExist(err) {
-		return false
-	}
-
-	return true
+	m := config.NewManager()
+	return m.IsInitialized()
 }
