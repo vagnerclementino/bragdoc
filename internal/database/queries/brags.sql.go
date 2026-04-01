@@ -13,7 +13,7 @@ import (
 
 const createBrag = `-- name: CreateBrag :one
 INSERT INTO brags (owner_id, title, description, category_id, job_title_id, created_at)
-VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+VALUES (?, ?, ?, ?, ?, ?)
 RETURNING id, owner_id, title, description, category_id, job_title_id, created_at, updated_at
 `
 
@@ -23,6 +23,7 @@ type CreateBragParams struct {
 	Description string        `db:"description" json:"description"`
 	CategoryID  int64         `db:"category_id" json:"category_id"`
 	JobTitleID  sql.NullInt64 `db:"job_title_id" json:"job_title_id"`
+	CreatedAt   sql.NullTime  `db:"created_at" json:"created_at"`
 }
 
 func (q *Queries) CreateBrag(ctx context.Context, arg CreateBragParams) (Brag, error) {
@@ -32,6 +33,7 @@ func (q *Queries) CreateBrag(ctx context.Context, arg CreateBragParams) (Brag, e
 		arg.Description,
 		arg.CategoryID,
 		arg.JobTitleID,
+		arg.CreatedAt,
 	)
 	var i Brag
 	err := row.Scan(
@@ -211,7 +213,7 @@ func (q *Queries) SearchBragsByTags(ctx context.Context, arg SearchBragsByTagsPa
 
 const updateBrag = `-- name: UpdateBrag :one
 UPDATE brags 
-SET title = ?, description = ?, category_id = ?, job_title_id = ?, updated_at = CURRENT_TIMESTAMP
+SET title = ?, description = ?, category_id = ?, job_title_id = ?, created_at = ?, updated_at = CURRENT_TIMESTAMP
 WHERE id = ?
 RETURNING id, owner_id, title, description, category_id, job_title_id, created_at, updated_at
 `
@@ -221,6 +223,7 @@ type UpdateBragParams struct {
 	Description string        `db:"description" json:"description"`
 	CategoryID  int64         `db:"category_id" json:"category_id"`
 	JobTitleID  sql.NullInt64 `db:"job_title_id" json:"job_title_id"`
+	CreatedAt   sql.NullTime  `db:"created_at" json:"created_at"`
 	ID          int64         `db:"id" json:"id"`
 }
 
@@ -230,6 +233,7 @@ func (q *Queries) UpdateBrag(ctx context.Context, arg UpdateBragParams) (Brag, e
 		arg.Description,
 		arg.CategoryID,
 		arg.JobTitleID,
+		arg.CreatedAt,
 		arg.ID,
 	)
 	var i Brag

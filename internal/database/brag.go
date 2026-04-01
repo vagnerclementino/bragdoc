@@ -117,6 +117,7 @@ func (r *sqliteBragRepository) Insert(ctx context.Context, brag *domain.Brag) (*
 		Description: brag.Description,
 		CategoryID:  categoryID,
 		JobTitleID:  positionID,
+		CreatedAt:   sql.NullTime{Time: brag.CreatedAt, Valid: !brag.CreatedAt.IsZero()},
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create brag: %w", err)
@@ -141,6 +142,7 @@ func (r *sqliteBragRepository) Update(ctx context.Context, brag *domain.Brag) (*
 		Description: brag.Description,
 		CategoryID:  categoryID,
 		JobTitleID:  positionID,
+		CreatedAt:   sql.NullTime{Time: brag.CreatedAt, Valid: !brag.CreatedAt.IsZero()},
 		ID:          brag.ID,
 	})
 	if err != nil {
