@@ -19,7 +19,7 @@ Usage:
   bragdoc brag add [flags]
 
 Flags:
-  -c, --category string      Brag category (UPPERCASE: PROJECT|ACHIEVEMENT|SKILL|LEADERSHIP|INNOVATION) (default "ACHIEVEMENT")
+  -c, --category string      Brag category (UPPERCASE: PROJECT|ACHIEVEMENT|SKILL|LEADERSHIP|INNOVATION|DELIVERY) (default "ACHIEVEMENT")
   -d, --description string   Brag description (required)
   -h, --help                 help for add
   -j, --job string           Job Title name (optional, uses active job title if not specified)

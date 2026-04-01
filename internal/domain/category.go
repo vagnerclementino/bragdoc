@@ -16,6 +16,7 @@ const (
 	CategoryNameSkill       CategoryName = "SKILL"
 	CategoryNameLeadership  CategoryName = "LEADERSHIP"
 	CategoryNameInnovation  CategoryName = "INNOVATION"
+	CategoryNameDelivery    CategoryName = "DELIVERY"
 )
 
 var defaultCategoryDescriptions = map[CategoryName]string{
@@ -25,6 +26,7 @@ var defaultCategoryDescriptions = map[CategoryName]string{
 	CategoryNameSkill:       "SKILLS AND LEARNING",
 	CategoryNameLeadership:  "TEAM OR LEADERSHIP ACTS",
 	CategoryNameInnovation:  "INNOVATIONS AND IMPROVEMENTS",
+	CategoryNameDelivery:    "VALUE DELIVERIES",
 }
 
 type Category struct {

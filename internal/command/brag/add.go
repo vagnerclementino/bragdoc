@@ -31,7 +31,7 @@ func NewAddCmd(bragService *service.BragService, userService *service.UserServic
 		panic(fmt.Sprintf("failed to mark description flag as required: %v", err))
 	}
 
-	cmd.Flags().StringP("category", "c", "ACHIEVEMENT", "Brag category (UPPERCASE: PROJECT|ACHIEVEMENT|SKILL|LEADERSHIP|INNOVATION)")
+	cmd.Flags().StringP("category", "c", "ACHIEVEMENT", "Brag category (UPPERCASE: PROJECT|ACHIEVEMENT|SKILL|LEADERSHIP|INNOVATION|DELIVERY)")
 	cmd.Flags().StringSliceP("tags", "", []string{}, "Comma-separated list of tags")
 	cmd.Flags().StringP("job", "j", "", "Job Title name (optional, uses active job title if not specified)")
 
@@ -48,7 +48,7 @@ func runAdd(ctx context.Context, bragService *service.BragService, userService *
 	// Parse category
 	category, err := domain.ParseCategory(categoryStr)
 	if err != nil {
-		return fmt.Errorf("invalid category: %w. Valid options: PROJECT, ACHIEVEMENT, SKILL, LEADERSHIP, INNOVATION", err)
+		return fmt.Errorf("invalid category: %w. Valid options: PROJECT, ACHIEVEMENT, SKILL, LEADERSHIP, INNOVATION, DELIVERY", err)
 	}
 
 	// TODO: Get actual user ID from config/session

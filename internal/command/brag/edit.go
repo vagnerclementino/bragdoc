@@ -71,7 +71,7 @@ func runEdit(ctx context.Context, bragService *service.BragService, tagService *
 	if categoryStr != "" {
 		category, err := domain.ParseCategory(categoryStr)
 		if err != nil {
-			return fmt.Errorf("invalid category: %w. Valid options: PROJECT, ACHIEVEMENT, SKILL, LEADERSHIP, INNOVATION", err)
+			return fmt.Errorf("invalid category: %w. Valid options: PROJECT, ACHIEVEMENT, SKILL, LEADERSHIP, INNOVATION, DELIVERY", err)
 		}
 		brag.Category = category
 	}
