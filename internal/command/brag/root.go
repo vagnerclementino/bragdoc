@@ -18,7 +18,7 @@ func NewBragCmd(bragService *service.BragService, userService *service.UserServi
 	bragCmd.AddCommand(
 		NewAddCmd(bragService, userService, tagService, jobTitleService),
 		NewListCmd(bragService, tagService),
-		NewEditCmd(bragService, tagService, jobTitleService),
+		NewEditCmd(bragService, userService, tagService, jobTitleService),
 		NewRemoveCmd(bragService),
 		NewShowCmd(bragService, tagService),
 	)

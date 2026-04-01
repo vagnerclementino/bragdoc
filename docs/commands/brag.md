@@ -19,7 +19,8 @@ Usage:
   bragdoc brag add [flags]
 
 Flags:
-  -c, --category string      Brag category (UPPERCASE: PROJECT|ACHIEVEMENT|SKILL|LEADERSHIP|INNOVATION) (default "ACHIEVEMENT")
+  -c, --category string      Brag category (UPPERCASE: PROJECT|ACHIEVEMENT|SKILL|LEADERSHIP|INNOVATION|DELIVERY) (default "ACHIEVEMENT")
+  -D, --date string          Date of the event (format based on locale: DD/MM/YYYY for pt-BR, MM/DD/YYYY for en-US)
   -d, --description string   Brag description (required)
   -h, --help                 help for add
   -j, --job string           Job Title name (optional, uses active job title if not specified)
@@ -37,6 +38,7 @@ Usage:
 
 Flags:
   -c, --category string      New brag category (project|achievement|skill|leadership|innovation)
+  -D, --date string          New date of the event (format based on locale: DD/MM/YYYY for pt-BR, MM/DD/YYYY for en-US)
   -d, --description string   New brag description
   -h, --help                 help for edit
   -j, --job string           New job title name
