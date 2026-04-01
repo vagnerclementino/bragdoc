@@ -9,12 +9,12 @@ SELECT * FROM brags WHERE owner_id = ? AND category_id = ? ORDER BY created_at;
 
 -- name: CreateBrag :one
 INSERT INTO brags (owner_id, title, description, category_id, job_title_id, created_at)
-VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+VALUES (?, ?, ?, ?, ?, ?)
 RETURNING *;
 
 -- name: UpdateBrag :one
 UPDATE brags 
-SET title = ?, description = ?, category_id = ?, job_title_id = ?, updated_at = CURRENT_TIMESTAMP
+SET title = ?, description = ?, category_id = ?, job_title_id = ?, created_at = ?, updated_at = CURRENT_TIMESTAMP
 WHERE id = ?
 RETURNING *;
 

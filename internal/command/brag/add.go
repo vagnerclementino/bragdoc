@@ -12,6 +12,7 @@ import (
 	"github.com/vagnerclementino/bragdoc/internal/service"
 )
 
+// NewAddCmd creates a new command for adding brag entries.
 func NewAddCmd(bragService *service.BragService, userService *service.UserService, tagService *service.TagService, jobTitleService *service.JobTitleService) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add",
@@ -34,6 +35,7 @@ func NewAddCmd(bragService *service.BragService, userService *service.UserServic
 	cmd.Flags().StringP("category", "c", "ACHIEVEMENT", "Brag category (UPPERCASE: PROJECT|ACHIEVEMENT|SKILL|LEADERSHIP|INNOVATION|DELIVERY)")
 	cmd.Flags().StringSliceP("tags", "", []string{}, "Comma-separated list of tags")
 	cmd.Flags().StringP("job", "j", "", "Job Title name (optional, uses active job title if not specified)")
+	cmd.Flags().StringP("date", "D", "", "Date of the event (format based on locale: DD/MM/YYYY for pt-BR, MM/DD/YYYY for en-US)")
 
 	return cmd
 }
@@ -44,6 +46,7 @@ func runAdd(ctx context.Context, bragService *service.BragService, userService *
 	categoryStr, _ := cmd.Flags().GetString("category")
 	tagNames, _ := cmd.Flags().GetStringSlice("tags")
 	jobTitleName, _ := cmd.Flags().GetString("job")
+	dateStr, _ := cmd.Flags().GetString("date")
 
 	// Parse category
 	category, err := domain.ParseCategory(categoryStr)
@@ -77,6 +80,17 @@ func runAdd(ctx context.Context, bragService *service.BragService, userService *
 		}
 	}
 
+	// Determine brag date
+	bragDate := time.Now()
+	if dateStr != "" {
+		locale := user.Locale
+		parsed, err := time.Parse(locale.DateFormat(), dateStr)
+		if err != nil {
+			return fmt.Errorf("invalid date '%s': expected format %s", dateStr, locale.DateFormatHint())
+		}
+		bragDate = parsed
+	}
+
 	// Create brag
 	newBrag := &domain.Brag{
 		Owner:       *user,
@@ -84,7 +98,7 @@ func runAdd(ctx context.Context, bragService *service.BragService, userService *
 		Description: description,
 		Category:    category,
 		JobTitle:    jobTitle,
-		CreatedAt:   time.Now(),
+		CreatedAt:   bragDate,
 	}
 
 	created, err := bragService.Create(ctx, newBrag)

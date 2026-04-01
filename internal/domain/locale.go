@@ -92,3 +92,23 @@ func SupportedLocalesString() string {
 	}
 	return strings.Join(strs, ", ")
 }
+
+// DateFormat returns the date format string for the locale
+func (l Locale) DateFormat() string {
+	switch l {
+	case LocalePortugueseBR:
+		return "02/01/2006" // DD/MM/YYYY
+	default:
+		return "01/02/2006" // MM/DD/YYYY
+	}
+}
+
+// DateFormatHint returns a human-readable hint for the expected date format
+func (l Locale) DateFormatHint() string {
+	switch l {
+	case LocalePortugueseBR:
+		return "DD/MM/YYYY"
+	default:
+		return "MM/DD/YYYY"
+	}
+}

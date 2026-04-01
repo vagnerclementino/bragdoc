@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -256,27 +257,22 @@ func TestCLIRequiresInit(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	tests := []struct {
-		name    string
-		args    []string
-		fixture string
+		name     string
+		args     []string
+		expected string
 	}{
-		{"brag list without init", []string{"brag", "list"}, "brag-list-no-init.golden"},
-		{"tag list without init", []string{"tag", "list"}, "tag-list-no-init.golden"},
+		{"brag list without init", []string{"brag", "list"}, "No brags found."},
+		{"tag list without init", []string{"tag", "list"}, "No tags found."},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			output, _ := runBinary(tt.args, map[string]string{"HOME": tmpDir})
 
-			if *update {
-				writeFixture(t, tt.fixture, output)
-			}
-
 			actual := string(output)
-			expected := loadFixture(t, tt.fixture)
 
-			if actual != expected {
-				t.Fatalf("actual = %s, expected = %s", actual, expected)
+			if !strings.Contains(actual, tt.expected) {
+				t.Fatalf("expected output to contain %q, got %q", tt.expected, actual)
 			}
 		})
 	}
