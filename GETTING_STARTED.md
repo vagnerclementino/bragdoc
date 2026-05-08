@@ -28,8 +28,55 @@ Inspired by the concept of "Brag Documents" popularized by [Julia Evans](https:/
 
 ### Prerequisites
 
-- Go 1.21.1 or higher (for building from source)
-- macOS or Linux operating system
+Bragdoc is built from source using Go and requires a **C compiler** because it uses [`go-sqlite3`](https://github.com/mattn/go-sqlite3), a CGO-based package.
+
+> **Note:** `sqlc` (the SQL code generator) is managed automatically as a Go tool dependency — no separate installation needed.
+
+#### Go
+
+Go **1.24 or higher** is required. Download from [go.dev/dl](https://go.dev/dl/).
+
+#### C Compiler
+
+Install a C compiler for your operating system:
+
+**macOS**
+
+Install the Xcode Command Line Tools, which include `clang`:
+```bash
+xcode-select --install
+```
+Alternatively, install via Homebrew:
+```bash
+brew install llvm
+```
+
+**Ubuntu / Debian**
+
+```bash
+sudo apt-get update
+sudo apt-get install build-essential
+```
+
+**Fedora / RHEL / CentOS**
+
+```bash
+sudo dnf install gcc
+```
+
+> On Fedora 41+ with `dnf5`, `groupinstall` was removed. Installing `gcc` directly works on all versions. Alternatively: `sudo dnf5 group install "Development Tools"`.
+
+**Windows**
+
+Choose one of the following options:
+
+- **WSL2 (recommended):** Install [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install) with Ubuntu, then follow the Ubuntu instructions above. Inside WSL2, `go env GOOS` returns `linux`, so the build targets Linux and runs natively in the WSL2 environment — no extra configuration needed.
+- **Native Windows:** Install a CGO-compatible GCC toolchain from [TDM-GCC](https://jmeubank.github.io/tdm-gcc/) or [WinLibs](https://winlibs.com/). After installation, ensure `gcc` is available in your `PATH`:
+  ```powershell
+  gcc --version
+  ```
+
+> **Windows note:** The build system detects the target OS automatically via `go env GOOS`. In WSL2 this resolves to `linux`, producing a Linux binary that runs inside WSL2. Native Windows builds (`GOOS=windows`) require a CGO-compatible toolchain and are more involved — WSL2 is strongly recommended.
 
 ### Building from Source
 

@@ -41,6 +41,30 @@ Ready to start documenting your achievements? Check out our comprehensive guides
 - **[Contributing Guide](CONTRIBUTING.md)** - Learn how to contribute to the project
 - **[Makefile Guide](docs/MAKEFILE.md)** - Detailed guide for all Make targets and workflows
 
+### Prerequisites
+
+Before building, make sure you have the following installed:
+
+| Requirement | Version | Notes |
+|---|---|---|
+| [Go](https://go.dev/dl/) | 1.24+ | Required |
+| C compiler | any | Required by `go-sqlite3` (CGO) |
+
+A C compiler is **required** because the project uses [`go-sqlite3`](https://github.com/mattn/go-sqlite3), a CGO-based package. Install it for your OS:
+
+| OS | Command |
+|---|---|
+| **macOS** | `xcode-select --install` |
+| **Ubuntu / Debian** | `sudo apt-get install build-essential` |
+| **Fedora / RHEL** | `sudo dnf install gcc` |
+| **Windows (WSL2)** | Follow the Ubuntu instructions inside WSL2 — `go env GOOS` returns `linux` automatically |
+| **Windows (native)** | Install [TDM-GCC](https://jmeubank.github.io/tdm-gcc/) or [WinLibs](https://winlibs.com/) and ensure `gcc` is in `PATH` |
+
+> The build system detects the target OS and architecture automatically via `go env GOOS` / `go env GOARCH` — no manual configuration needed.
+> `sqlc` is also managed automatically as a Go tool dependency — no separate installation needed.
+
+For detailed, OS-specific instructions see the [Getting Started Guide](GETTING_STARTED.md#prerequisites).
+
 ### Quick Start
 
 1. **Build from source**:

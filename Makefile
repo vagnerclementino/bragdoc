@@ -21,6 +21,14 @@ lint: ##@quality check coding style
 run: build ##@application run application
 	./$(BINARY_NAME)
 
+SQLC_SOURCES := $(wildcard internal/database/sql/*.sql) \
+                $(wildcard internal/database/migrations/*.sql) \
+                sqlc.yaml
+
+.sqlc-generated: $(SQLC_SOURCES)
+	go tool sqlc generate
+	@touch $@
+
 .PHONY: clean
 clean: ##@application clean binary and artifacts
 	if [ -f $(BINARY_NAME) ] ; then rm $(BINARY_NAME) ; fi
@@ -29,9 +37,10 @@ clean: ##@application clean binary and artifacts
 	rm -f coverage.txt
 	rm -f $(BINARY_NAME).zip
 	rm -f $(BINARY_NAME).tar.gz
+	rm -f .sqlc-generated
 
 .PHONY: build
-build: generate ##@application build application
+build: .sqlc-generated ##@application build application
 	rm -f $(BINARY_NAME)
 	env CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o $(BINARY_NAME) -ldflags $(LDFLAGS) ./cmd/cli
 	chmod +x $(BINARY_NAME)
@@ -65,8 +74,7 @@ package: build ##@application creates packaged versions (zip, tar.gz)
 	tar czf $(BINARY_NAME).tar.gz $(BINARY_NAME)
 
 .PHONY: generate
-generate: ##@helper generate SQLC code
-	sqlc generate
+generate: .sqlc-generated ##@helper generate SQLC code
 
 .PHONY: smoke
 smoke: build ##@quality run smoke tests
