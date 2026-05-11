@@ -62,7 +62,7 @@ quality: test test-race fmt vet imports lint ##@quality run all quality targets
 
 .PHONY: install
 install: build ##@application install local version
-	cp $(BINARY_NAME) /usr/local/bin/$(BINARY_NAME)
+	sudo install -m 755 $(BINARY_NAME) /usr/local/bin/$(BINARY_NAME)
 
 .PHONY: tidy
 tidy: ##@helper ensures that the go.mod file matches the source code

@@ -95,7 +95,7 @@ Choose one of the following options:
    ```bash
    make install
    ```
-   This installs the binary to `/usr/local/bin/bragdoc`
+   This installs the binary to `/usr/local/bin/bragdoc` (requires `sudo`). Supported on macOS, Linux, and WSL2. Not available on native Windows.
 
 4. **Verify installation**:
    ```bash
