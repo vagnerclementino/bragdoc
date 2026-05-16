@@ -2,7 +2,7 @@ version: "2"
 
 run:
   timeout: 5m
-  go: '1.25'
+  go: '1.24'
 
 linters:
   enable:
@@ -23,6 +23,12 @@ linters:
     - bodyclose
     - noctx
     - nilerr
+
+linters-settings:
+  revive:
+    rules:
+      - name: exported
+        disabled: true
 
 issues:
   max-issues-per-linter: 0
