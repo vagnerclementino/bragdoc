@@ -44,3 +44,6 @@ coverage.txt
 # Smoke test directory
 .bragdoc
 .kiro/
+
+# sqlc stamp file
+.sqlc-generated

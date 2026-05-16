@@ -14,12 +14,20 @@ test-race: ##@quality validate race condition
 
 .PHONY: lint
 lint: ##@quality check coding style
-	@which golangci-lint > /dev/null || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH)/bin v1.62.2
-	golangci-lint run
+	@which golangci-lint > /dev/null || curl -sSfL https://golangci-lint.run/install.sh | sh -s -- -b $(GOPATH)/bin v2.1.6
+	PATH="$(GOPATH)/bin:$(PATH)" golangci-lint run
 
 .PHONY: run
 run: build ##@application run application
 	./$(BINARY_NAME)
+
+SQLC_SOURCES := $(wildcard internal/database/sql/*.sql) \
+                $(wildcard internal/database/migrations/*.sql) \
+                sqlc.yaml
+
+.sqlc-generated: $(SQLC_SOURCES)
+	go tool sqlc generate
+	@touch $@
 
 .PHONY: clean
 clean: ##@application clean binary and artifacts
@@ -29,9 +37,10 @@ clean: ##@application clean binary and artifacts
 	rm -f coverage.txt
 	rm -f $(BINARY_NAME).zip
 	rm -f $(BINARY_NAME).tar.gz
+	rm -f .sqlc-generated
 
 .PHONY: build
-build: generate ##@application build application
+build: .sqlc-generated ##@application build application
 	rm -f $(BINARY_NAME)
 	env CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o $(BINARY_NAME) -ldflags $(LDFLAGS) ./cmd/cli
 	chmod +x $(BINARY_NAME)
@@ -46,14 +55,15 @@ vet: ##@quality run go vet
 
 .PHONY: imports
 imports: ##@quality run goimports
-	goimports -w .
+	@which goimports > /dev/null || GOBIN=$(GOPATH)/bin go install golang.org/x/tools/cmd/goimports@v0.38.0
+	PATH="$(GOPATH)/bin:$(PATH)" goimports -w .
 
 .PHONY: quality
 quality: test test-race fmt vet imports lint ##@quality run all quality targets
 
 .PHONY: install
 install: build ##@application install local version
-	cp $(BINARY_NAME) /usr/local/bin/$(BINARY_NAME)
+	sudo install -m 755 $(BINARY_NAME) /usr/local/bin/$(BINARY_NAME)
 
 .PHONY: tidy
 tidy: ##@helper ensures that the go.mod file matches the source code
@@ -65,8 +75,7 @@ package: build ##@application creates packaged versions (zip, tar.gz)
 	tar czf $(BINARY_NAME).tar.gz $(BINARY_NAME)
 
 .PHONY: generate
-generate: ##@helper generate SQLC code
-	sqlc generate
+generate: .sqlc-generated ##@helper generate SQLC code
 
 .PHONY: smoke
 smoke: build ##@quality run smoke tests

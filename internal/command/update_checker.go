@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -59,7 +60,7 @@ func CheckForUpdates(cfg *config.Config, configMgr *config.Manager) {
 	latestVersion := strings.TrimPrefix(release.TagName, "v")
 
 	if currentVersion != "unknown" && currentVersion != latestVersion {
-		fmt.Printf("\n💡 New version available: %s (current: %s)\n", release.TagName, Version)
-		fmt.Println("   Run 'bragdoc version upgrade' to update")
+		fmt.Fprintf(os.Stderr, "\n💡 New version available: %s (current: %s)\n", release.TagName, Version)
+		fmt.Fprintln(os.Stderr, "   Run 'bragdoc version upgrade' to update")
 	}
 }

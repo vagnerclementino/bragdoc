@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"flag"
 	"fmt"
@@ -68,18 +69,24 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-// Helper functions for golden files
-func runBinary(args []string, env map[string]string) ([]byte, error) {
+// runBinary executes the test binary and returns stdout and stderr separately.
+// Use stdout for golden file comparisons and success assertions.
+// Use stderr for error message assertions (cobra writes errors to stderr).
+func runBinary(args []string, env map[string]string) (stdout, stderr []byte, err error) {
 	ctx := context.Background()
 	cmd := exec.CommandContext(ctx, binaryPath, args...)
 	cmd.Env = append(os.Environ(), "GOCOVERDIR=.coverdata")
 
-	// Add custom environment variables
 	for k, v := range env {
 		cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", k, v))
 	}
 
-	return cmd.CombinedOutput()
+	var outBuf, errBuf bytes.Buffer
+	cmd.Stdout = &outBuf
+	cmd.Stderr = &errBuf
+
+	err = cmd.Run()
+	return outBuf.Bytes(), errBuf.Bytes(), err
 }
 
 func loadFixture(t *testing.T, filename string) string {
@@ -202,16 +209,16 @@ func TestGetDatabasePath_UsesDefaultWhenEmpty(t *testing.T) {
 
 // Integration tests
 func TestCLIVersion(t *testing.T) {
-	output, err := runBinary([]string{"version"}, nil)
+	stdout, _, err := runBinary([]string{"version"}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	if *update {
-		writeFixture(t, "version.golden", output)
+		writeFixture(t, "version.golden", stdout)
 	}
 
-	actual := string(output)
+	actual := string(stdout)
 	expected := loadFixture(t, "version.golden")
 
 	if actual != expected {
@@ -232,16 +239,16 @@ func TestCLIHelp(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			output, err := runBinary(tt.args, nil)
+			stdout, _, err := runBinary(tt.args, nil)
 			if err != nil {
 				t.Fatal(err)
 			}
 
 			if *update {
-				writeFixture(t, tt.fixture, output)
+				writeFixture(t, tt.fixture, stdout)
 			}
 
-			actual := string(output)
+			actual := string(stdout)
 			expected := loadFixture(t, tt.fixture)
 
 			if actual != expected {
@@ -266,13 +273,13 @@ func TestCLIRequiresInit(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			output, _ := runBinary(tt.args, map[string]string{"HOME": tmpDir})
+			stdout, _, _ := runBinary(tt.args, map[string]string{"HOME": tmpDir})
 
 			if *update {
-				writeFixture(t, tt.fixture, output)
+				writeFixture(t, tt.fixture, stdout)
 			}
 
-			actual := string(output)
+			actual := string(stdout)
 			expected := loadFixture(t, tt.fixture)
 
 			if actual != expected {
@@ -288,23 +295,23 @@ func TestCLIFullWorkflow(t *testing.T) {
 
 	// Test version
 	t.Run("version", func(t *testing.T) {
-		output, err := runBinary([]string{"version"}, env)
+		stdout, _, err := runBinary([]string{"version"}, env)
 		assert.NoError(t, err)
-		assert.Contains(t, string(output), "Bragdoc 0.1.0")
+		assert.Contains(t, string(stdout), "Bragdoc 0.1.0")
 	})
 
 	// Test help
 	t.Run("help", func(t *testing.T) {
-		output, err := runBinary([]string{"--help"}, env)
+		stdout, _, err := runBinary([]string{"--help"}, env)
 		assert.NoError(t, err)
-		assert.Contains(t, string(output), "Bragdoc is a powerful command-line interface")
+		assert.Contains(t, string(stdout), "Bragdoc is a powerful command-line interface")
 	})
 
 	// Initialize bragdoc
 	t.Run("init", func(t *testing.T) {
-		output, err := runBinary([]string{"init", "--name", "TestUser", "--email", "test@example.com"}, env)
+		stdout, _, err := runBinary([]string{"init", "--name", "TestUser", "--email", "test@example.com"}, env)
 		assert.NoError(t, err)
-		assert.Contains(t, string(output), "Bragdoc initialized successfully")
+		assert.Contains(t, string(stdout), "Bragdoc initialized successfully")
 	})
 
 	// CRUD: Create brags
@@ -325,107 +332,107 @@ func TestCLIFullWorkflow(t *testing.T) {
 			if tt.tags != "" {
 				args = append(args, "--tags", tt.tags)
 			}
-			output, err := runBinary(args, env)
+			stdout, _, err := runBinary(args, env)
 			assert.NoError(t, err)
-			assert.Contains(t, string(output), "Brag created successfully")
+			assert.Contains(t, string(stdout), "Brag created successfully")
 		}
 	})
 
 	// CRUD: List brags
 	t.Run("list brags", func(t *testing.T) {
-		output, err := runBinary([]string{"brag", "list"}, env)
+		stdout, _, err := runBinary([]string{"brag", "list"}, env)
 		assert.NoError(t, err)
-		assert.Contains(t, string(output), "Achievement One")
-		assert.Contains(t, string(output), "Leadership Project")
-		assert.Contains(t, string(output), "Innovation Work")
+		assert.Contains(t, string(stdout), "Achievement One")
+		assert.Contains(t, string(stdout), "Leadership Project")
+		assert.Contains(t, string(stdout), "Innovation Work")
 	})
 
 	// CRUD: Show brag
 	t.Run("show brag", func(t *testing.T) {
-		output, err := runBinary([]string{"brag", "show", "1"}, env)
+		stdout, _, err := runBinary([]string{"brag", "show", "1"}, env)
 		assert.NoError(t, err)
-		assert.Contains(t, string(output), "Achievement One")
-		assert.Contains(t, string(output), "This is my first achievement")
+		assert.Contains(t, string(stdout), "Achievement One")
+		assert.Contains(t, string(stdout), "This is my first achievement")
 	})
 
 	// CRUD: Edit brag
 	t.Run("edit brag", func(t *testing.T) {
-		output, err := runBinary([]string{"brag", "edit", "1", "--title", "Updated Achievement"}, env)
+		stdout, _, err := runBinary([]string{"brag", "edit", "1", "--title", "Updated Achievement"}, env)
 		assert.NoError(t, err)
-		assert.Contains(t, string(output), "Brag updated successfully")
+		assert.Contains(t, string(stdout), "Brag updated successfully")
 	})
 
 	// CRUD: Remove brag
 	t.Run("remove brag", func(t *testing.T) {
-		output, err := runBinary([]string{"brag", "remove", "3", "--force"}, env)
+		stdout, _, err := runBinary([]string{"brag", "remove", "3", "--force"}, env)
 		assert.NoError(t, err)
-		assert.Contains(t, string(output), "Successfully removed")
+		assert.Contains(t, string(stdout), "Successfully removed")
 	})
 
 	// Validation: Invalid brags
 	t.Run("invalid brag - short title", func(t *testing.T) {
-		output, _ := runBinary([]string{"brag", "add", "--title", "Hi", "--description", "Valid description with enough characters here", "--category", "achievement"}, env)
-		assert.Contains(t, string(output), "title must be at least 5 characters")
+		_, stderr, _ := runBinary([]string{"brag", "add", "--title", "Hi", "--description", "Valid description with enough characters here", "--category", "achievement"}, env)
+		assert.Contains(t, string(stderr), "title must be at least 5 characters")
 	})
 
 	t.Run("invalid brag - short description", func(t *testing.T) {
-		output, _ := runBinary([]string{"brag", "add", "--title", "Valid Title", "--description", "Short", "--category", "achievement"}, env)
-		assert.Contains(t, string(output), "description must be at least 20 characters")
+		_, stderr, _ := runBinary([]string{"brag", "add", "--title", "Valid Title", "--description", "Short", "--category", "achievement"}, env)
+		assert.Contains(t, string(stderr), "description must be at least 20 characters")
 	})
 
 	t.Run("invalid brag - invalid category", func(t *testing.T) {
-		output, _ := runBinary([]string{"brag", "add", "--title", "Valid Title", "--description", "Valid description with enough characters", "--category", "invalid"}, env)
-		assert.Contains(t, string(output), "invalid category")
+		_, stderr, _ := runBinary([]string{"brag", "add", "--title", "Valid Title", "--description", "Valid description with enough characters", "--category", "invalid"}, env)
+		assert.Contains(t, string(stderr), "invalid category")
 	})
 
 	// Tag CRUD: Create tags
 	t.Run("create tags", func(t *testing.T) {
 		tags := []string{"golang", "python", "aws"}
 		for _, tag := range tags {
-			output, err := runBinary([]string{"tag", "add", "--name", tag}, env)
+			stdout, _, err := runBinary([]string{"tag", "add", "--name", tag}, env)
 			assert.NoError(t, err)
-			assert.Contains(t, string(output), "Tag created successfully")
+			assert.Contains(t, string(stdout), "Tag created successfully")
 		}
 	})
 
 	// Tag CRUD: List tags
 	t.Run("list tags", func(t *testing.T) {
-		output, err := runBinary([]string{"tag", "list"}, env)
+		stdout, _, err := runBinary([]string{"tag", "list"}, env)
 		assert.NoError(t, err)
-		assert.Contains(t, string(output), "golang")
-		assert.Contains(t, string(output), "python")
-		assert.Contains(t, string(output), "aws")
+		assert.Contains(t, string(stdout), "golang")
+		assert.Contains(t, string(stdout), "python")
+		assert.Contains(t, string(stdout), "aws")
 	})
 
 	// Tag CRUD: Remove tag
 	t.Run("remove tag", func(t *testing.T) {
 		// Remove tag by ID (golang should be ID 5 based on creation order)
-		output, err := runBinary([]string{"tag", "remove", "5", "--force"}, env)
+		stdout, _, err := runBinary([]string{"tag", "remove", "5", "--force"}, env)
 		assert.NoError(t, err)
-		assert.Contains(t, string(output), "removed successfully")
+		assert.Contains(t, string(stdout), "removed successfully")
 	})
 
 	// Tag Validation: Invalid tags
 	t.Run("invalid tag - too short", func(t *testing.T) {
-		output, _ := runBinary([]string{"tag", "add", "--name", "a"}, env)
-		assert.Contains(t, string(output), "must be at least 2 characters")
+		_, stderr, _ := runBinary([]string{"tag", "add", "--name", "a"}, env)
+		assert.Contains(t, string(stderr), "must be at least 2 characters")
 	})
 
 	t.Run("invalid tag - too long", func(t *testing.T) {
-		output, _ := runBinary([]string{"tag", "add", "--name", "this-is-way-too-long-x"}, env)
-		assert.Contains(t, string(output), "cannot exceed 20 characters")
+		_, stderr, _ := runBinary([]string{"tag", "add", "--name", "this-is-way-too-long-x"}, env)
+		assert.Contains(t, string(stderr), "cannot exceed 20 characters")
 	})
 
 	t.Run("invalid tag - duplicate", func(t *testing.T) {
-		output, _ := runBinary([]string{"tag", "add", "--name", "python"}, env)
-		assert.Contains(t, string(output), "already exists")
+		_, stderr, _ := runBinary([]string{"tag", "add", "--name", "python"}, env)
+		assert.Contains(t, string(stderr), "already exists")
 	})
 
 	// Generate document
 	t.Run("generate document", func(t *testing.T) {
-		output, err := runBinary([]string{"doc", "generate", "--output", filepath.Join(tmpDir, "bragdoc.md")}, env)
+		stdout, _, err := runBinary([]string{"doc", "generate", "--output", filepath.Join(tmpDir, "bragdoc.md")}, env)
 		assert.NoError(t, err)
-		assert.Contains(t, string(output), "Document generated successfully")
+		assert.Contains(t, string(stdout), "Document generated successfully")
 
 		// Verify file was created
 		// #nosec G304 - Test file path is controlled by test code
