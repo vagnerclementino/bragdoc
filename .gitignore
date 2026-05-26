@@ -47,3 +47,4 @@ coverage.txt
 
 # sqlc stamp file
 .sqlc-generated
+bragdoc-mcp

@@ -32,6 +32,7 @@ SQLC_SOURCES := $(wildcard internal/database/sql/*.sql) \
 .PHONY: clean
 clean: ##@application clean binary and artifacts
 	if [ -f $(BINARY_NAME) ] ; then rm $(BINARY_NAME) ; fi
+	rm -f $(BINARY_NAME)-mcp
 	rm -rf .coverdata
 	rm -f $(BINARY_NAME)-test
 	rm -f coverage.txt
@@ -44,6 +45,12 @@ build: .sqlc-generated ##@application build application
 	rm -f $(BINARY_NAME)
 	env CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o $(BINARY_NAME) -ldflags $(LDFLAGS) ./cmd/cli
 	chmod +x $(BINARY_NAME)
+
+.PHONY: build-mcp
+build-mcp: .sqlc-generated ##@application build MCP server binary
+	rm -f $(BINARY_NAME)-mcp
+	env CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o $(BINARY_NAME)-mcp -ldflags $(LDFLAGS) ./cmd/mcp
+	chmod +x $(BINARY_NAME)-mcp
 
 .PHONY: fmt
 fmt: ##@quality run go fmt
