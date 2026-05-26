@@ -48,3 +48,6 @@ coverage.txt
 # sqlc stamp file
 .sqlc-generated
 bragdoc-mcp
+
+# Rapid property test failure replay files
+**/testdata/rapid/
