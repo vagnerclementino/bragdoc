@@ -12,6 +12,7 @@ Welcome to Bragdoc! This guide will help you get up and running quickly so you c
 - [Configuration](#configuration)
 - [Tips and Best Practices](#tips-and-best-practices)
 - [Troubleshooting](#troubleshooting)
+- [Using Bragdoc as an MCP Server](#using-bragdoc-as-an-mcp-server)
 
 ## What is Bragdoc?
 
@@ -483,7 +484,49 @@ Now that you're familiar with the basics:
 2. **Explore features**: Try different output formats and filters
 3. **Establish a routine**: Set reminders to add brags regularly
 4. **Generate reports**: Create documents for performance reviews
-5. **Contribute**: Check out [CONTRIBUTING.md](CONTRIBUTING.md) to help improve Bragdoc
+5. **Try MCP mode**: Connect bragdoc to your AI-powered IDE
+6. **Contribute**: Check out [CONTRIBUTING.md](CONTRIBUTING.md) to help improve Bragdoc
+
+## Using Bragdoc as an MCP Server
+
+Bragdoc can run as an [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server, letting AI agents in your IDE manage achievements through natural language.
+
+### Setup
+
+1. Build the MCP binary:
+   ```bash
+   make build-mcp
+   ```
+
+2. Initialize bragdoc (if not already done):
+   ```bash
+   ./bragdoc init --name "Your Name" --email "your@email.com"
+   ```
+
+3. Configure your IDE to use the MCP server. For example, in Kiro create `.kiro/settings/mcp.json`:
+   ```json
+   {
+     "mcpServers": {
+       "bragdoc": {
+         "command": "/absolute/path/to/bragdoc-mcp",
+         "args": []
+       }
+     }
+   }
+   ```
+
+4. Restart your IDE or reconnect the MCP server.
+
+### What You Can Do
+
+Once connected, your AI assistant can:
+
+- Create brags: *"Add a brag about shipping the authentication feature"*
+- Search achievements: *"List my brags tagged with 'backend'"*
+- Generate documents: *"Generate my brag document for this quarter"*
+- Manage tags: *"Create a tag called 'performance'"*
+
+The MCP server exposes 17 tools covering all bragdoc operations (brags, tags, documents, users).
 
 ## Getting Help
 

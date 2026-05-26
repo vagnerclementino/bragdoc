@@ -32,6 +32,7 @@ performance reviews.
 - Organize your accomplishments by categories, tags, and etc.
 - Easily update and edit your Brag Document as you achieve more milestones.
 - Export your Brag Document to various formats (PDF, Word, Markdown) for different use cases.
+- **MCP Server Mode** — expose bragdoc as an [MCP](https://modelcontextprotocol.io/) server so AI agents can manage achievements programmatically from any compatible IDE.
 
 ## Getting Started
 
@@ -89,6 +90,69 @@ For detailed, OS-specific instructions see the [Getting Started Guide](GETTING_S
 
 For detailed instructions, see the [Getting Started Guide](GETTING_STARTED.md).
 
+## MCP Server Mode
+
+Bragdoc can run as an [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server, allowing AI agents in compatible IDEs to manage your achievements through natural language.
+
+### Building the MCP Server
+
+```bash
+make build-mcp
+```
+
+This produces a `bragdoc-mcp` binary that communicates over stdio using JSON-RPC 2.0.
+
+### Configuring in Your IDE
+
+Add the following to your IDE's MCP configuration:
+
+**Kiro** (`.kiro/settings/mcp.json`):
+```json
+{
+  "mcpServers": {
+    "bragdoc": {
+      "command": "/path/to/bragdoc-mcp",
+      "args": []
+    }
+  }
+}
+```
+
+**VS Code / Cursor** (`.vscode/mcp.json` or equivalent):
+```json
+{
+  "mcpServers": {
+    "bragdoc": {
+      "command": "/path/to/bragdoc-mcp"
+    }
+  }
+}
+```
+
+> **Note:** Run `bragdoc init` before using MCP mode — the server uses the same database and configuration as the CLI.
+
+### Available Tools
+
+| Tool | Description |
+|------|-------------|
+| `brag_create` | Create a new brag entry |
+| `brag_get` | Retrieve a brag by ID |
+| `brag_list` | List all brags for a user |
+| `brag_search_by_tags` | Search brags by tag names |
+| `brag_search_by_category` | Search brags by category |
+| `brag_update` | Update an existing brag |
+| `brag_delete` | Delete a brag by ID |
+| `tag_create` | Create a new tag |
+| `tag_list` | List all tags for a user |
+| `tag_attach` | Attach tags to a brag |
+| `tag_detach` | Detach tags from a brag |
+| `tag_delete` | Delete a tag |
+| `tag_get_or_create` | Get or create a tag by name |
+| `doc_generate` | Generate a brag document |
+| `user_get` | Get user profile by ID |
+| `user_list` | List all users |
+| `user_get_by_email` | Get user by email |
+
 ## Development
 
 ### Available Make Targets
@@ -103,6 +167,7 @@ For detailed information about all Make targets, workflows, and best practices, 
 
 #### Application Targets
 - `make build` - Build the application binary
+- `make build-mcp` - Build the MCP server binary (`bragdoc-mcp`)
 - `make run` - Build and run the application
 - `make clean` - Clean binary and artifacts
 - `make install` - Install to /usr/local/bin (requires sudo)
