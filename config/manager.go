@@ -221,6 +221,11 @@ func (m *Manager) GetConfigPath() string {
 	return filepath.Join(m.configDir, "config.yaml")
 }
 
+// GetConfigDir returns the path to the bragdoc configuration directory.
+func (m *Manager) GetConfigDir() string {
+	return m.configDir
+}
+
 // GetDatabasePath returns the path to the database file
 func (m *Manager) GetDatabasePath() string {
 	return filepath.Join(m.configDir, "bragdoc.db")
