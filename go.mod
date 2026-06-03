@@ -11,6 +11,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/text v0.34.0
 	gopkg.in/yaml.v3 v3.0.1
+	pgregory.net/rapid v1.3.0
 )
 
 require (
@@ -80,7 +81,6 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.9.1 // indirect
 	modernc.org/sqlite v1.37.0 // indirect
-	pgregory.net/rapid v1.3.0 // indirect
 )
 
 tool github.com/sqlc-dev/sqlc/cmd/sqlc
