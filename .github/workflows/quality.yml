@@ -9,7 +9,7 @@ on:
 concurrency: pipeline-quality
 
 jobs:
-  pipeline-quality:
+  quality:
     runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
