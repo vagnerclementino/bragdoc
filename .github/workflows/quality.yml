@@ -14,13 +14,13 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         name: checkout
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         name: setup-go
         with:
-          go-version: '1.25'
+          go-version: '1.24'
 
       - name: Check go mod
         run: |
@@ -28,9 +28,9 @@ jobs:
           git diff --exit-code go.mod
 
       - name: lint
-        uses: golangci/golangci-lint-action@v7
+        uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.6.1
+          version: v2.1.6
           args: --issues-exit-code=0 --timeout 3m0s
           only-new-issues: true
           skip-cache: true
@@ -41,7 +41,7 @@ jobs:
           go test ./... -v -coverprofile=coverage.txt -covermode=atomic
 
       - name: Upload coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v6
         with:
           file: ./coverage.txt
           fail_ci_if_error: false
