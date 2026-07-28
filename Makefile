@@ -14,8 +14,7 @@ test-race: ##@quality validate race condition
 
 .PHONY: lint
 lint: ##@quality check coding style
-	@which golangci-lint > /dev/null || curl -sSfL https://golangci-lint.run/install.sh | sh -s -- -b $(GOPATH)/bin v2.1.6
-	PATH="$(GOPATH)/bin:$(PATH)" golangci-lint run
+	go tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint run
 
 .PHONY: run
 run: build ##@application run application
@@ -55,8 +54,7 @@ vet: ##@quality run go vet
 
 .PHONY: imports
 imports: ##@quality run goimports
-	@which goimports > /dev/null || GOBIN=$(GOPATH)/bin go install golang.org/x/tools/cmd/goimports@v0.38.0
-	PATH="$(GOPATH)/bin:$(PATH)" goimports -w .
+	go tool goimports -w .
 
 .PHONY: quality
 quality: test test-race fmt vet imports lint ##@quality run all quality targets
