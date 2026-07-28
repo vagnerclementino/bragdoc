@@ -5,7 +5,7 @@ include Makefile.docs
 .DEFAULT_GOAL := help
 
 .PHONY: test
-test: clean ##@quality run tests with coverage
+test: clean update-golden ##@quality run tests with coverage
 	go test ./... -v -coverprofile=coverage.txt -covermode=atomic
 
 .PHONY: test-race
