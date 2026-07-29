@@ -47,9 +47,13 @@ coverage.txt
 
 # sqlc stamp file
 .sqlc-generated
+bragdoc-mcp
+
+# Rapid property test failure replay files
+**/testdata/rapid/
 
 # asdf configuration file
 .tool-versions
 
-# direvn configuration file
+# direnv configuration file
 .envrc
