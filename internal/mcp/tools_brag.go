@@ -204,7 +204,7 @@ func toBragResponse(b *domain.Brag) BragResponse {
 func marshalResult(v any) (*mcp.CallToolResult, any, error) {
 	data, err := json.Marshal(v)
 	if err != nil {
-		return toolError(fmt.Errorf("internal error: failed to marshal response")), nil, nil
+		return toolError(fmt.Errorf("internal error: failed to marshal response")), nil, fmt.Errorf("marshal response: %w", err)
 	}
 
 	return &mcp.CallToolResult{

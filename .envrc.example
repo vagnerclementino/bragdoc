@@ -1,0 +1,2 @@
+# Isolates dev data from the official bragdoc install (~/.bragdoc)
+export BRAGDOC_HOME="$PWD/.bragdoc"

@@ -51,3 +51,9 @@ bragdoc-mcp
 
 # Rapid property test failure replay files
 **/testdata/rapid/
+
+# asdf configuration file
+.tool-versions
+
+# direnv configuration file
+.envrc

@@ -39,7 +39,7 @@ func newIntegrationServer(t *testing.T) *integrationServer {
 	// Actually, let's use the raw conn and run migrations via the DB wrapper.
 	// The database.New function requires a file path, so we'll create the DB struct manually.
 	// We can use the migration approach from database package by creating a proper DB.
-	conn.Close()
+	require.NoError(t, conn.Close())
 
 	// Use a temp file for the database that gets cleaned up
 	tmpDir := t.TempDir()

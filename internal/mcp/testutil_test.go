@@ -2,7 +2,6 @@ package mcp
 
 import (
 	"context"
-	"sync"
 	"time"
 
 	"github.com/stretchr/testify/mock"
@@ -279,25 +278,6 @@ func newTestServer() *testFixtures {
 		jobTitleRepo: jobTitleRepo,
 		server:       srv,
 	}
-}
-
-// --- ID Generator for property tests ---
-
-// idGenerator generates sequential unique IDs for mock returns.
-type idGenerator struct {
-	mu      sync.Mutex
-	current int64
-}
-
-func newIDGenerator() *idGenerator {
-	return &idGenerator{current: 0}
-}
-
-func (g *idGenerator) next() int64 {
-	g.mu.Lock()
-	defer g.mu.Unlock()
-	g.current++
-	return g.current
 }
 
 // --- Valid categories ---

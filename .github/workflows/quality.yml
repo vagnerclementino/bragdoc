@@ -9,8 +9,10 @@ on:
 concurrency: pipeline-quality
 
 jobs:
-  pipeline-quality:
+  quality:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -30,6 +32,7 @@ jobs:
       - name: lint
         uses: golangci/golangci-lint-action@v9
         with:
+          install-mode: goinstall
           version: v2.1.6
           args: --issues-exit-code=0 --timeout 3m0s
           only-new-issues: true
