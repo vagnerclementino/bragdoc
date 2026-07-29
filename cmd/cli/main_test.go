@@ -60,10 +60,14 @@ func TestMain(m *testing.M) {
 
 	// Cleanup
 	if err := os.Remove(binaryPath); err != nil && !os.IsNotExist(err) {
-		fmt.Fprintf(os.Stderr, "Failed to remove binary: %v\n", err)
+		if _, err := fmt.Fprintf(os.Stderr, "Failed to remove binary: %v\n", err); err != nil {
+			return
+		}
 	}
 	if err := os.RemoveAll(".coverdata"); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to remove coverdata: %v\n", err)
+		if _, err := fmt.Fprintf(os.Stderr, "Failed to remove coverdata: %v\n", err); err != nil {
+			return
+		}
 	}
 
 	os.Exit(code)

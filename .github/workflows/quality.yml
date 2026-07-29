@@ -9,8 +9,10 @@ on:
 concurrency: pipeline-quality
 
 jobs:
-  pipeline-quality:
+  quality:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:

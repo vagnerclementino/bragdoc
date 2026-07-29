@@ -30,16 +30,30 @@ type Manager struct {
 	viper      *viper.Viper
 }
 
-// NewManager creates a new configuration manager
-func NewManager() *Manager {
+// BragdocHomeEnv is the environment variable to override the default data directory.
+// When set, bragdoc uses its value instead of ~/.bragdoc.
+// This follows Viper's convention with the BRAGDOC prefix.
+const BragdocHomeEnv = "BRAGDOC_HOME"
+
+// ResolveBragdocHome returns the bragdoc data directory following Viper's
+// precedence: env var (BRAGDOC_HOME) > default (~/.bragdoc).
+// The config file itself lives inside this directory, so this resolution
+// must happen before Viper loads the config file.
+func ResolveBragdocHome() string {
+	if envHome := os.Getenv(BragdocHomeEnv); envHome != "" {
+		return expandHomeDir(envHome)
+	}
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		// Fallback to current directory if home is not available
 		homeDir = "."
 	}
+	return filepath.Join(homeDir, ".bragdoc")
+}
 
+// NewManager creates a new configuration manager
+func NewManager() *Manager {
 	return &Manager{
-		configDir: filepath.Join(homeDir, ".bragdoc"),
+		configDir: ResolveBragdocHome(),
 		viper:     viper.New(),
 	}
 }
