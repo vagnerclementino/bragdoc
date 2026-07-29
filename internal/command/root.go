@@ -31,6 +31,7 @@ build their own "Brag Documents" to track and showcase their professional achiev
 		tag.NewTagCmd(tagService),
 		doc.NewDocCmd(docService, bragService, tagService),
 		NewInitCmd(),
+		NewResetCmd(),
 		NewVersionCmd(),
 		NewDoctorCmd(), // Hidden command for debugging
 	)
