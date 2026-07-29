@@ -50,3 +50,6 @@ coverage.txt
 
 # asdf configuration file
 .tool-versions
+
+# direvn configuration file
+.envrc
