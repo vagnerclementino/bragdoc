@@ -5,6 +5,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"testing"
+	"time"
+
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
@@ -14,9 +17,9 @@ import (
 	"github.com/vagnerclementino/bragdoc/internal/service"
 )
 
-// --- In-memory SQLite setup helper ---
+// --- Real SQLite setup helper ---
 
-// integrationServer holds a Server backed by a real in-memory SQLite database.
+// integrationServer holds a Server backed by a real temporary SQLite database.
 type integrationServer struct {
 	server      *Server
 	userService *service.UserService
@@ -25,21 +28,10 @@ type integrationServer struct {
 	db          *sql.DB
 }
 
-// newIntegrationServer creates a Server backed by a real in-memory SQLite DB with
+// newIntegrationServer creates a Server backed by a real temporary SQLite DB with
 // migrations applied. This allows full end-to-end testing without mocks.
 func newIntegrationServer(t *testing.T) *integrationServer {
 	t.Helper()
-
-	// Open in-memory SQLite
-	conn, err := sql.Open("sqlite3", ":memory:")
-	require.NoError(t, err)
-
-	// We need to use the database.DB type to run migrations since it uses embedded FS.
-	// Instead, we create a temp file DB using the database package's setup.
-	// Actually, let's use the raw conn and run migrations via the DB wrapper.
-	// The database.New function requires a file path, so we'll create the DB struct manually.
-	// We can use the migration approach from database package by creating a proper DB.
-	require.NoError(t, conn.Close())
 
 	// Use a temp file for the database that gets cleaned up
 	tmpDir := t.TempDir()
@@ -68,15 +60,7 @@ func newIntegrationServer(t *testing.T) *integrationServer {
 	jobTitleService := service.NewJobTitleService(jobTitleRepo)
 	docService := service.NewDocumentService(userService)
 
-	// Create the Server struct directly (avoiding NewServer which registers tools
-	// with the MCP SDK and may panic due to jsonschema tag incompatibility).
-	srv := &Server{
-		bragService: bragService,
-		tagService:  tagService,
-		userService: userService,
-		docService:  docService,
-		jobService:  jobTitleService,
-	}
+	srv := NewServer(bragService, tagService, userService, docService, jobTitleService)
 
 	t.Cleanup(func() {
 		_ = db.Close()
@@ -98,7 +82,7 @@ func newIntegrationServer(t *testing.T) *integrationServer {
 // with a real SQLite database.
 func TestIntegration_FullRoundTrip(t *testing.T) {
 	is := newIntegrationServer(t)
-	ctx := context.Background()
+	ctx, client := newIntegrationClient(t, is.server)
 
 	// Create a user directly via service
 	user, err := is.userService.Create(ctx, &domain.User{
@@ -109,12 +93,12 @@ func TestIntegration_FullRoundTrip(t *testing.T) {
 	require.NotZero(t, user.ID)
 
 	// Create a brag via handler
-	createResult, _, err := is.server.handleBragCreate(ctx, nil, BragCreateParams{
+	createResult, err := client.CallTool(ctx, &mcp.CallToolParams{Name: "brag_create", Arguments: BragCreateParams{
 		UserID:      user.ID,
 		Title:       "Shipped MCP Server",
 		Description: "Implemented the full MCP server mode with all 17 tools registered",
 		Category:    "PROJECT",
-	})
+	}})
 	require.NoError(t, err)
 	require.False(t, createResult.IsError, "expected success, got: %s", extractText(createResult))
 
@@ -126,7 +110,7 @@ func TestIntegration_FullRoundTrip(t *testing.T) {
 	assert.NotZero(t, createResp.ID)
 
 	// Get the brag via handler
-	getResult, _, err := is.server.handleBragGet(ctx, nil, BragGetParams{ID: createResp.ID})
+	getResult, err := client.CallTool(ctx, &mcp.CallToolParams{Name: "brag_get", Arguments: BragGetParams{ID: createResp.ID}})
 	require.NoError(t, err)
 	require.False(t, getResult.IsError, "expected success, got: %s", extractText(getResult))
 
@@ -141,112 +125,63 @@ func TestIntegration_FullRoundTrip(t *testing.T) {
 	assert.Equal(t, createResp.Category, getResp.Category)
 }
 
-// TestIntegration_NewServerInitialize tests that NewServer can be called.
-// NOTE: NewServer may panic due to jsonschema tag incompatibility with the
-// current MCP SDK version. If it does, the test documents the issue.
-// TODO: Once the SDK fixes jsonschema tag handling, update this test to verify
-// the full MCP initialize response via stdio transport.
-func TestIntegration_NewServerInitialize(t *testing.T) {
-	is := newIntegrationServer(t)
-
-	// Attempt to call NewServer and catch any panic from SDK schema validation
-	var srv *Server
-	panicked := false
-	var panicValue interface{}
-
-	func() {
-		defer func() {
-			if r := recover(); r != nil {
-				panicked = true
-				panicValue = r
-			}
-		}()
-		srv = NewServer(is.bragService, is.tagService, is.userService, is.server.docService, is.server.jobService)
-	}()
-
-	if panicked {
-		// Document the known SDK incompatibility
-		t.Logf("NewServer panicked (known SDK jsonschema tag incompatibility): %v", panicValue)
-		t.Log("TODO: Fix once MCP Go SDK resolves jsonschema struct tag parsing")
-		// The test passes — we've documented the panic rather than letting it crash
-	} else {
-		// If it doesn't panic, verify the server was created successfully
-		require.NotNil(t, srv)
-		assert.NotNil(t, srv.mcpServer)
-		assert.NotNil(t, srv.bragService)
-		assert.NotNil(t, srv.tagService)
-		assert.NotNil(t, srv.userService)
-		assert.NotNil(t, srv.docService)
-		assert.NotNil(t, srv.jobService)
-	}
+// newIntegrationClient exercises SDK initialization, routing, and serialization.
+func newIntegrationClient(t *testing.T, srv *Server) (context.Context, *mcp.ClientSession) {
+	t.Helper()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	t.Cleanup(cancel)
+	serverTransport, clientTransport := mcp.NewInMemoryTransports()
+	serverSession, err := srv.mcpServer.Connect(ctx, serverTransport, nil)
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, serverSession.Close()) })
+	client := mcp.NewClient(&mcp.Implementation{Name: "bragdoc-test", Version: "1"}, nil)
+	session, err := client.Connect(ctx, clientTransport, nil)
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, session.Close()) })
+	return ctx, session
 }
 
-// TestIntegration_UnknownToolName verifies that calling a non-existent handler
-// method on the server returns an appropriate error. Since handlers are called
-// directly (not via the MCP SDK router), we test that the server struct properly
-// delegates to services and unknown operations surface errors.
+func TestIntegration_InitializeAndDiscoverTools(t *testing.T) {
+	is := newIntegrationServer(t)
+	ctx, client := newIntegrationClient(t, is.server)
+	initialized := client.InitializeResult()
+	require.NotNil(t, initialized)
+	assert.Equal(t, "bragdoc", initialized.ServerInfo.Name)
+	assert.NotEmpty(t, initialized.ProtocolVersion)
+	require.NotNil(t, initialized.Capabilities.Tools)
+	result, err := client.ListTools(ctx, nil)
+	require.NoError(t, err)
+	names := make([]string, 0, len(result.Tools))
+	for _, tool := range result.Tools {
+		names = append(names, tool.Name)
+		assert.NotNil(t, tool.InputSchema)
+	}
+	assert.ElementsMatch(t, []string{
+		"brag_create", "brag_get", "brag_list", "brag_search_by_tags", "brag_search_by_category", "brag_update", "brag_delete",
+		"tag_create", "tag_list", "tag_attach", "tag_detach", "tag_delete", "tag_get_or_create",
+		"doc_generate", "user_get", "user_list", "user_get_by_email",
+	}, names)
+}
+
 func TestIntegration_UnknownToolName(t *testing.T) {
 	is := newIntegrationServer(t)
-	ctx := context.Background()
-
-	// Attempting to get a brag that doesn't exist returns a not-found error
-	result, _, err := is.server.handleBragGet(ctx, nil, BragGetParams{ID: 99999})
+	ctx, client := newIntegrationClient(t, is.server)
+	_, err := client.CallTool(ctx, &mcp.CallToolParams{Name: "unknown_tool", Arguments: map[string]any{}})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "unknown_tool")
+	// A protocol error must not end the session.
+	result, err := client.CallTool(ctx, &mcp.CallToolParams{Name: "user_list", Arguments: map[string]any{}})
 	require.NoError(t, err)
-	assert.True(t, result.IsError)
-	assert.Contains(t, extractText(result), "not found")
-
-	// Attempting to get a user by email that doesn't exist
-	result, _, err = is.server.handleUserGetByEmail(ctx, nil, UserGetByEmailParams{Email: "nonexistent@nowhere.com"})
-	require.NoError(t, err)
-	assert.True(t, result.IsError)
-	assert.Contains(t, extractText(result), "not found")
+	assert.False(t, result.IsError)
 }
 
-// TestIntegration_RegisterToolsCount verifies that registerTools registers exactly
-// 17 tools. Since NewServer may panic due to SDK issues, we test the tool
-// registration by creating a server and counting registered tools.
-func TestIntegration_RegisterToolsCount(t *testing.T) {
+func TestIntegration_InvalidArguments(t *testing.T) {
 	is := newIntegrationServer(t)
-
-	var srv *Server
-	panicked := false
-
-	func() {
-		defer func() {
-			if r := recover(); r != nil {
-				panicked = true
-			}
-		}()
-		srv = NewServer(is.bragService, is.tagService, is.userService, is.server.docService, is.server.jobService)
-	}()
-
-	if panicked {
-		// NewServer panics on tool registration — verify we at least have the
-		// expected number of handler methods by testing they exist on the Server struct.
-		t.Log("NewServer panicked; verifying handler methods exist instead")
-
-		// Verify all 17 handler methods are callable (they exist on *Server)
-		handlers := []string{
-			"handleBragCreate", "handleBragGet", "handleBragList",
-			"handleBragSearchByTags", "handleBragSearchByCategory",
-			"handleBragUpdate", "handleBragDelete",
-			"handleTagCreate", "handleTagList", "handleTagAttach",
-			"handleTagDetach", "handleTagDelete", "handleTagGetOrCreate",
-			"handleDocGenerate",
-			"handleUserGet", "handleUserList", "handleUserGetByEmail",
-		}
-		assert.Len(t, handlers, 17, "expected 17 tool handlers")
-	} else {
-		// If NewServer works, the server was created with all tools registered
-		require.NotNil(t, srv)
-		require.NotNil(t, srv.mcpServer)
-		// Verify the server struct has all services wired correctly
-		assert.NotNil(t, srv.bragService)
-		assert.NotNil(t, srv.tagService)
-		assert.NotNil(t, srv.userService)
-		assert.NotNil(t, srv.docService)
-		assert.NotNil(t, srv.jobService)
-		t.Log("NewServer succeeded — 17 tools registered via registerTools()")
+	ctx, client := newIntegrationClient(t, is.server)
+	for _, arguments := range []map[string]any{{}, {"id": "invalid"}, {"id": 1, "unexpected": true}} {
+		result, err := client.CallTool(ctx, &mcp.CallToolParams{Name: "brag_get", Arguments: arguments})
+		require.NoError(t, err)
+		assert.True(t, result.IsError)
 	}
 }
 

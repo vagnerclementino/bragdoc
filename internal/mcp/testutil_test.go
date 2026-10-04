@@ -249,8 +249,7 @@ type testFixtures struct {
 }
 
 // newTestServer creates a test Server backed by real services with mock repositories.
-// It creates the Server struct directly without calling NewServer (which would trigger
-// MCP SDK tool registration and potentially panic on schema validation).
+// Direct handler tests isolate business behavior; server_test.go covers SDK routing.
 func newTestServer() *testFixtures {
 	bragRepo := new(MockBragRepository)
 	tagRepo := new(MockTagRepository)
