@@ -21,7 +21,7 @@ func NewJobTitleRepository(db *SQLiteDB, userRepo repository.UserRepository) rep
 }
 
 func (r *sqliteJobTitleRepository) Get(ctx context.Context, id int64) (*domain.JobTitle, error) {
-	dbJobTitle, err := r.db.Queries().GetJobTitle(ctx, id)
+	dbJobTitle, err := r.db.Queries(ctx).GetJobTitle(ctx, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, domain.NotFoundError(fmt.Errorf("job title not found: %d", id))
@@ -32,7 +32,7 @@ func (r *sqliteJobTitleRepository) Get(ctx context.Context, id int64) (*domain.J
 }
 
 func (r *sqliteJobTitleRepository) GetActive(ctx context.Context, userID int64) (*domain.JobTitle, error) {
-	dbJobTitle, err := r.db.Queries().GetActiveJobTitle(ctx, userID)
+	dbJobTitle, err := r.db.Queries(ctx).GetActiveJobTitle(ctx, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, domain.NotFoundError(fmt.Errorf("no active job title found for user %d", userID))
@@ -43,7 +43,7 @@ func (r *sqliteJobTitleRepository) GetActive(ctx context.Context, userID int64) 
 }
 
 func (r *sqliteJobTitleRepository) GetByName(ctx context.Context, userID int64, title string) (*domain.JobTitle, error) {
-	dbJobTitle, err := r.db.Queries().GetJobTitleByName(ctx, queries.GetJobTitleByNameParams{
+	dbJobTitle, err := r.db.Queries(ctx).GetJobTitleByName(ctx, queries.GetJobTitleByNameParams{
 		UserID: userID,
 		Title:  title,
 	})
@@ -57,7 +57,7 @@ func (r *sqliteJobTitleRepository) GetByName(ctx context.Context, userID int64, 
 }
 
 func (r *sqliteJobTitleRepository) ListByUser(ctx context.Context, userID int64) ([]*domain.JobTitle, error) {
-	dbJobTitles, err := r.db.Queries().ListJobTitlesByUser(ctx, userID)
+	dbJobTitles, err := r.db.Queries(ctx).ListJobTitlesByUser(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list job titles: %w", err)
 	}
@@ -86,7 +86,7 @@ func (r *sqliteJobTitleRepository) Create(ctx context.Context, jobTitle *domain.
 		endDate = sql.NullTime{Time: *jobTitle.EndDate, Valid: true}
 	}
 
-	dbJobTitle, err := r.db.Queries().CreateJobTitle(ctx, queries.CreateJobTitleParams{
+	dbJobTitle, err := r.db.Queries(ctx).CreateJobTitle(ctx, queries.CreateJobTitleParams{
 		UserID:    jobTitle.User.ID,
 		Title:     jobTitle.Title,
 		Company:   sql.NullString{String: jobTitle.Company, Valid: jobTitle.Company != ""},
@@ -112,7 +112,7 @@ func (r *sqliteJobTitleRepository) Update(ctx context.Context, jobTitle *domain.
 		endDate = sql.NullTime{Time: *jobTitle.EndDate, Valid: true}
 	}
 
-	dbJobTitle, err := r.db.Queries().UpdateJobTitle(ctx, queries.UpdateJobTitleParams{
+	dbJobTitle, err := r.db.Queries(ctx).UpdateJobTitle(ctx, queries.UpdateJobTitleParams{
 		Title:     jobTitle.Title,
 		Company:   sql.NullString{String: jobTitle.Company, Valid: jobTitle.Company != ""},
 		StartDate: startDate,
@@ -127,7 +127,7 @@ func (r *sqliteJobTitleRepository) Update(ctx context.Context, jobTitle *domain.
 
 func (r *sqliteJobTitleRepository) Delete(ctx context.Context, id int64) error {
 	// Check if job title is in use
-	count, err := r.db.Queries().CountBragsByJobTitle(ctx, sql.NullInt64{Int64: id, Valid: true})
+	count, err := r.db.Queries(ctx).CountBragsByJobTitle(ctx, sql.NullInt64{Int64: id, Valid: true})
 	if err != nil {
 		return fmt.Errorf("failed to check job title usage: %w", err)
 	}
@@ -135,7 +135,7 @@ func (r *sqliteJobTitleRepository) Delete(ctx context.Context, id int64) error {
 		return fmt.Errorf("cannot delete job title %d: %d brags use it", id, count)
 	}
 
-	if err := r.db.Queries().DeleteJobTitle(ctx, id); err != nil {
+	if err := r.db.Queries(ctx).DeleteJobTitle(ctx, id); err != nil {
 		return fmt.Errorf("failed to delete job title: %w", err)
 	}
 	return nil

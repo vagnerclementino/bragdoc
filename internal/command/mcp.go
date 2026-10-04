@@ -10,7 +10,7 @@ import (
 )
 
 // NewMCPCmd serves MCP requests over stdio using the CLI's application services.
-func NewMCPCmd(brags *service.BragService, users *service.UserService, tags *service.TagService, jobs *service.JobTitleService, docs *service.DocumentService) *cobra.Command {
+func NewMCPCmd(brags *service.BragService, users *service.UserService, tags *service.TagService, jobs *service.JobTitleService, docs *service.DocumentService, transactions mcpserver.TransactionRunner) *cobra.Command {
 	return &cobra.Command{
 		Use:          "mcp",
 		Short:        "Serve MCP tools over stdin/stdout",
@@ -21,13 +21,13 @@ func NewMCPCmd(brags *service.BragService, users *service.UserService, tags *ser
 			if !config.NewManager().IsInitialized() {
 				return fmt.Errorf("bragdoc is not initialized. Please run 'bragdoc init' first")
 			}
-			if brags == nil || users == nil || tags == nil || jobs == nil || docs == nil {
+			if brags == nil || users == nil || tags == nil || jobs == nil || docs == nil || transactions == nil {
 				return fmt.Errorf("failed to initialize MCP services; check the Bragdoc configuration")
 			}
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			return mcpserver.NewServer(brags, tags, users, docs, jobs).Run(cmd.Context())
+			return mcpserver.NewServer(brags, tags, users, docs, jobs, transactions).Run(cmd.Context())
 		},
 		// Override the root hook: MCP must not run CLI update checks on disconnect.
 		PersistentPostRun: func(_ *cobra.Command, _ []string) {},

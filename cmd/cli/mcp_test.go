@@ -19,14 +19,24 @@ import (
 
 func TestMCPStdioLifecycle(t *testing.T) {
 	dataHome := t.TempDir()
+	t.Setenv(config.BragdocHomeEnv, dataHome)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 	_, stderr, err := runBinary([]string{"init", "--name", "MCP Test", "--email", "mcp@example.com"}, map[string]string{config.BragdocHomeEnv: dataHome})
 	require.NoError(t, err, "%s", stderr)
+	// Make an update check due, so an inherited post-run hook would change the
+	// configuration and fail the snapshot assertion on disconnect.
+	manager := config.NewManager()
+	cfg, err := manager.Load(ctx)
+	require.NoError(t, err)
+	cfg.UpdateChecker.Enabled = true
+	cfg.UpdateChecker.LastCheckedAt = time.Time{}
+	require.NoError(t, manager.Save(ctx, cfg))
 	configPath := filepath.Join(dataHome, "config.yaml")
+	// #nosec G304 -- Test fixture path is inside t.TempDir().
 	before, err := os.ReadFile(configPath)
 	require.NoError(t, err)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
 	cmd := exec.CommandContext(ctx, binaryPath, "mcp")
 	cmd.Env = append(os.Environ(), config.BragdocHomeEnv+"="+dataHome, "GOCOVERDIR=.coverdata")
 	var diagnostics bytes.Buffer
@@ -64,6 +74,7 @@ func TestMCPStdioLifecycle(t *testing.T) {
 	require.NotNil(t, cmd.ProcessState)
 	assert.True(t, cmd.ProcessState.Success(), "%s", diagnostics.String())
 	assert.Contains(t, diagnostics.String(), "bragdoc MCP server ready")
+	// #nosec G304 -- Test fixture path is inside t.TempDir().
 	after, err := os.ReadFile(configPath)
 	require.NoError(t, err)
 	assert.Equal(t, before, after, "disconnect must not trigger the CLI update checker")

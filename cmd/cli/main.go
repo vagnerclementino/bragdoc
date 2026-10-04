@@ -22,7 +22,7 @@ func main() {
 	cfg, err := loadConfig()
 	if err != nil {
 		// If config doesn't exist, let commands handle it (e.g., init command)
-		rootCmd := command.NewRootCmd(nil, nil, nil, nil, nil)
+		rootCmd := command.NewRootCmd(nil, nil, nil, nil, nil, nil)
 		if err := rootCmd.ExecuteContext(ctx); err != nil {
 			os.Exit(1)
 		}
@@ -63,7 +63,7 @@ func main() {
 	docService := service.NewDocumentService(userService)
 
 	// Create root command with dependencies
-	rootCmd := command.NewRootCmd(bragService, userService, tagService, jobTitleService, docService)
+	rootCmd := command.NewRootCmd(bragService, userService, tagService, jobTitleService, docService, sqliteDB)
 	if err := rootCmd.ExecuteContext(ctx); err != nil {
 		os.Exit(1)
 	}

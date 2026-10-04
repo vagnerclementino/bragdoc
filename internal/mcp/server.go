@@ -12,12 +12,18 @@ import (
 
 // Server wraps the MCP SDK server and registers bragdoc tools.
 type Server struct {
-	mcpServer   *mcp.Server
-	bragService *service.BragService
-	tagService  *service.TagService
-	userService *service.UserService
-	docService  *service.DocumentService
-	jobService  *service.JobTitleService
+	mcpServer    *mcp.Server
+	bragService  *service.BragService
+	tagService   *service.TagService
+	userService  *service.UserService
+	docService   *service.DocumentService
+	jobService   *service.JobTitleService
+	transactions TransactionRunner
+}
+
+// TransactionRunner supplies the storage boundary for a complete write tool call.
+type TransactionRunner interface {
+	WithinTransaction(context.Context, func(context.Context) error) error
 }
 
 // NewServer creates an MCP server with all tools registered.
@@ -27,6 +33,7 @@ func NewServer(
 	userService *service.UserService,
 	docService *service.DocumentService,
 	jobService *service.JobTitleService,
+	transactions TransactionRunner,
 ) *Server {
 	version := "dev"
 	if info, ok := debug.ReadBuildInfo(); ok && info.Main.Version != "" && info.Main.Version != "(devel)" {
@@ -40,12 +47,13 @@ func NewServer(
 	mcpServer.AddReceivingMiddleware(normalizeInputErrors)
 
 	s := &Server{
-		mcpServer:   mcpServer,
-		bragService: bragService,
-		tagService:  tagService,
-		userService: userService,
-		docService:  docService,
-		jobService:  jobService,
+		mcpServer:    mcpServer,
+		bragService:  bragService,
+		tagService:   tagService,
+		userService:  userService,
+		docService:   docService,
+		jobService:   jobService,
+		transactions: transactions,
 	}
 
 	s.registerTools()
@@ -64,7 +72,7 @@ func (s *Server) registerTools() {
 	mcp.AddTool(s.mcpServer, &mcp.Tool{
 		Name:        "brag_create",
 		Description: "Create a new brag entry (achievement record)",
-	}, s.handleBragCreate)
+	}, transactionalTool(s, s.handleBragCreate))
 
 	mcp.AddTool(s.mcpServer, &mcp.Tool{
 		Name:        "brag_get",
@@ -89,18 +97,18 @@ func (s *Server) registerTools() {
 	mcp.AddTool(s.mcpServer, &mcp.Tool{
 		Name:        "brag_update",
 		Description: "Update an existing brag entry",
-	}, s.handleBragUpdate)
+	}, transactionalTool(s, s.handleBragUpdate))
 
 	mcp.AddTool(s.mcpServer, &mcp.Tool{
 		Name:        "brag_delete",
 		Description: "Delete a brag entry by ID",
-	}, s.handleBragDelete)
+	}, transactionalTool(s, s.handleBragDelete))
 
 	// Tag tools
 	mcp.AddTool(s.mcpServer, &mcp.Tool{
 		Name:        "tag_create",
 		Description: "Create a new tag",
-	}, s.handleTagCreate)
+	}, transactionalTool(s, s.handleTagCreate))
 
 	mcp.AddTool(s.mcpServer, &mcp.Tool{
 		Name:        "tag_list",
@@ -110,22 +118,22 @@ func (s *Server) registerTools() {
 	mcp.AddTool(s.mcpServer, &mcp.Tool{
 		Name:        "tag_attach",
 		Description: "Attach tags to a brag entry",
-	}, s.handleTagAttach)
+	}, transactionalTool(s, s.handleTagAttach))
 
 	mcp.AddTool(s.mcpServer, &mcp.Tool{
 		Name:        "tag_detach",
 		Description: "Detach tags from a brag entry",
-	}, s.handleTagDetach)
+	}, transactionalTool(s, s.handleTagDetach))
 
 	mcp.AddTool(s.mcpServer, &mcp.Tool{
 		Name:        "tag_delete",
 		Description: "Delete a tag by ID",
-	}, s.handleTagDelete)
+	}, transactionalTool(s, s.handleTagDelete))
 
 	mcp.AddTool(s.mcpServer, &mcp.Tool{
 		Name:        "tag_get_or_create",
 		Description: "Get an existing tag by name or create it if it does not exist",
-	}, s.handleTagGetOrCreate)
+	}, transactionalTool(s, s.handleTagGetOrCreate))
 
 	// Doc tools
 	mcp.AddTool(s.mcpServer, &mcp.Tool{

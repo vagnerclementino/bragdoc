@@ -6,11 +6,12 @@ import (
 	"github.com/vagnerclementino/bragdoc/internal/command/brag"
 	"github.com/vagnerclementino/bragdoc/internal/command/doc"
 	"github.com/vagnerclementino/bragdoc/internal/command/tag"
+	mcpserver "github.com/vagnerclementino/bragdoc/internal/mcp"
 	"github.com/vagnerclementino/bragdoc/internal/service"
 )
 
 // NewRootCmd creates the root command for the bragdoc CLI.
-func NewRootCmd(bragService *service.BragService, userService *service.UserService, tagService *service.TagService, jobTitleService *service.JobTitleService, docService *service.DocumentService) *cobra.Command {
+func NewRootCmd(bragService *service.BragService, userService *service.UserService, tagService *service.TagService, jobTitleService *service.JobTitleService, docService *service.DocumentService, transactions mcpserver.TransactionRunner) *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:   "bragdoc",
 		Short: "Bragdoc - Document your professional achievements",
@@ -33,7 +34,7 @@ build their own "Brag Documents" to track and showcase their professional achiev
 		NewInitCmd(),
 		NewVersionCmd(),
 		NewDoctorCmd(), // Hidden command for debugging
-		NewMCPCmd(bragService, userService, tagService, jobTitleService, docService),
+		NewMCPCmd(bragService, userService, tagService, jobTitleService, docService, transactions),
 	)
 
 	return rootCmd

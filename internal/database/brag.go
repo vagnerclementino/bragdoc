@@ -28,7 +28,7 @@ func NewBragRepository(db *SQLiteDB, userRepo repository.UserRepository, categor
 }
 
 func (r *sqliteBragRepository) Select(ctx context.Context, id int64) (*domain.Brag, error) {
-	dbBrag, err := r.db.Queries().GetBrag(ctx, id)
+	dbBrag, err := r.db.Queries(ctx).GetBrag(ctx, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, domain.NotFoundError(fmt.Errorf("brag not found: %d", id))
@@ -39,7 +39,7 @@ func (r *sqliteBragRepository) Select(ctx context.Context, id int64) (*domain.Br
 }
 
 func (r *sqliteBragRepository) SelectAll(ctx context.Context, userID int64) ([]*domain.Brag, error) {
-	dbBrags, err := r.db.Queries().ListBragsByUser(ctx, userID)
+	dbBrags, err := r.db.Queries(ctx).ListBragsByUser(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list brags: %w", err)
 	}
@@ -55,7 +55,7 @@ func (r *sqliteBragRepository) SelectAll(ctx context.Context, userID int64) ([]*
 }
 
 func (r *sqliteBragRepository) SelectByTags(ctx context.Context, userID int64, tagNames []string) ([]*domain.Brag, error) {
-	dbBrags, err := r.db.Queries().SearchBragsByTags(ctx, queries.SearchBragsByTagsParams{
+	dbBrags, err := r.db.Queries(ctx).SearchBragsByTags(ctx, queries.SearchBragsByTagsParams{
 		OwnerID:  userID,
 		TagNames: tagNames,
 	})
@@ -80,7 +80,7 @@ func (r *sqliteBragRepository) SelectByCategory(ctx context.Context, userID int6
 		return nil, fmt.Errorf("failed to get category ID: %w", err)
 	}
 
-	dbBrags, err := r.db.Queries().ListBragsByCategory(ctx, queries.ListBragsByCategoryParams{
+	dbBrags, err := r.db.Queries(ctx).ListBragsByCategory(ctx, queries.ListBragsByCategoryParams{
 		OwnerID:    userID,
 		CategoryID: categoryID,
 	})
@@ -111,7 +111,7 @@ func (r *sqliteBragRepository) Insert(ctx context.Context, brag *domain.Brag) (*
 		positionID = sql.NullInt64{Int64: brag.JobTitle.ID, Valid: true}
 	}
 
-	dbBrag, err := r.db.Queries().CreateBrag(ctx, queries.CreateBragParams{
+	dbBrag, err := r.db.Queries(ctx).CreateBrag(ctx, queries.CreateBragParams{
 		OwnerID:     brag.Owner.ID,
 		Title:       brag.Title,
 		Description: brag.Description,
@@ -136,7 +136,7 @@ func (r *sqliteBragRepository) Update(ctx context.Context, brag *domain.Brag) (*
 		positionID = sql.NullInt64{Int64: brag.JobTitle.ID, Valid: true}
 	}
 
-	dbBrag, err := r.db.Queries().UpdateBrag(ctx, queries.UpdateBragParams{
+	dbBrag, err := r.db.Queries(ctx).UpdateBrag(ctx, queries.UpdateBragParams{
 		Title:       brag.Title,
 		Description: brag.Description,
 		CategoryID:  categoryID,
@@ -150,7 +150,7 @@ func (r *sqliteBragRepository) Update(ctx context.Context, brag *domain.Brag) (*
 }
 
 func (r *sqliteBragRepository) Delete(ctx context.Context, id int64) error {
-	if err := r.db.Queries().DeleteBrag(ctx, id); err != nil {
+	if err := r.db.Queries(ctx).DeleteBrag(ctx, id); err != nil {
 		return fmt.Errorf("failed to delete brag: %w", err)
 	}
 	return nil
@@ -201,6 +201,16 @@ func (r *sqliteBragRepository) toDomainBrag(ctx context.Context, dbBrag *queries
 		jobTitle = jt
 	}
 
+	// Load associations with the same context so tag replacement can read and
+	// change the complete aggregate inside one transaction.
+	dbTags, err := r.db.Queries(ctx).ListTagsByBrag(ctx, dbBrag.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get brag tags: %w", err)
+	}
+	tags := make([]*domain.Tag, 0, len(dbTags))
+	for _, tag := range dbTags {
+		tags = append(tags, toDomainTag(&tag))
+	}
 	brag := &domain.Brag{
 		ID:          dbBrag.ID,
 		Owner:       *user,
@@ -208,6 +218,7 @@ func (r *sqliteBragRepository) toDomainBrag(ctx context.Context, dbBrag *queries
 		JobTitle:    jobTitle,
 		Title:       dbBrag.Title,
 		Description: dbBrag.Description,
+		Tags:        tags,
 	}
 
 	if dbBrag.CreatedAt.Valid {

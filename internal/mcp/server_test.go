@@ -60,7 +60,7 @@ func newIntegrationServer(t *testing.T) *integrationServer {
 	jobTitleService := service.NewJobTitleService(jobTitleRepo)
 	docService := service.NewDocumentService(userService)
 
-	srv := NewServer(bragService, tagService, userService, docService, jobTitleService)
+	srv := NewServer(bragService, tagService, userService, docService, jobTitleService, sqliteDB)
 
 	t.Cleanup(func() {
 		_ = db.Close()

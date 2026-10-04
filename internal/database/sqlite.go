@@ -3,6 +3,8 @@ package database
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"fmt"
 
 	"github.com/vagnerclementino/bragdoc/internal/database/queries"
 )
@@ -26,9 +28,38 @@ func (s *SQLiteDB) DB() *sql.DB {
 	return s.db
 }
 
-// Queries returns the generated queries
-func (s *SQLiteDB) Queries() *queries.Queries {
+// Queries uses the transaction bound to ctx, or the normal connection otherwise.
+// All repositories sharing this SQLiteDB must propagate the request context.
+func (s *SQLiteDB) Queries(ctx context.Context) *queries.Queries {
+	if tx, ok := ctx.Value(transactionKey{db: s}).(*sql.Tx); ok {
+		return s.queries.WithTx(tx)
+	}
 	return s.queries
+}
+
+type transactionKey struct{ db *SQLiteDB }
+
+// WithinTransaction commits a complete operation or rolls back on error/panic.
+// The transaction belongs to this request; other requests keep their own contexts.
+func (s *SQLiteDB) WithinTransaction(ctx context.Context, fn func(context.Context) error) error {
+	if ctx.Value(transactionKey{db: s}) != nil {
+		return fmt.Errorf("nested transactions are not supported")
+	}
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("begin transaction: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }() // Also releases the transaction on panic.
+	if err := fn(context.WithValue(ctx, transactionKey{db: s}, tx)); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil && !errors.Is(rollbackErr, sql.ErrTxDone) {
+			return fmt.Errorf("rollback transaction after %v: %w", err, rollbackErr)
+		}
+		return err
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit transaction: %w", err)
+	}
+	return nil
 }
 
 // BeginTx starts a new transaction
