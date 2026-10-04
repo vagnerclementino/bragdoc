@@ -13,7 +13,7 @@ import (
 func (s *Server) handleBragCreate(ctx context.Context, _ *mcp.CallToolRequest, params BragCreateParams) (*mcp.CallToolResult, any, error) {
 	cat, err := domain.ParseCategory(params.Category)
 	if err != nil {
-		return toolError(fmt.Errorf("validation failed: %v", err)), nil, nil
+		return toolError(domain.ValidationError(fmt.Errorf("validation failed: %v", err))), nil, nil
 	}
 
 	brag := &domain.Brag{
@@ -94,7 +94,7 @@ func (s *Server) handleBragSearchByTags(ctx context.Context, _ *mcp.CallToolRequ
 func (s *Server) handleBragSearchByCategory(ctx context.Context, _ *mcp.CallToolRequest, params BragSearchByCategoryParams) (*mcp.CallToolResult, any, error) {
 	cat, err := domain.ParseCategory(params.Category)
 	if err != nil {
-		return toolError(fmt.Errorf("validation failed: %v", err)), nil, nil
+		return toolError(domain.ValidationError(fmt.Errorf("validation failed: %v", err))), nil, nil
 	}
 
 	brags, err := s.bragService.SearchByCategory(ctx, params.UserID, cat)
@@ -126,7 +126,7 @@ func (s *Server) handleBragUpdate(ctx context.Context, _ *mcp.CallToolRequest, p
 	if params.Category != "" {
 		cat, err := domain.ParseCategory(params.Category)
 		if err != nil {
-			return toolError(fmt.Errorf("validation failed: %v", err)), nil, nil
+			return toolError(domain.ValidationError(fmt.Errorf("validation failed: %v", err))), nil, nil
 		}
 		existing.Category = cat
 	}
@@ -204,7 +204,7 @@ func toBragResponse(b *domain.Brag) BragResponse {
 func marshalResult(v any) (*mcp.CallToolResult, any, error) {
 	data, err := json.Marshal(v)
 	if err != nil {
-		return toolError(fmt.Errorf("internal error: failed to marshal response")), nil, fmt.Errorf("marshal response: %w", err)
+		return toolError(fmt.Errorf("marshal response: %w", err)), nil, nil
 	}
 
 	return &mcp.CallToolResult{

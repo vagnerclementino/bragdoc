@@ -86,7 +86,9 @@ func TestProperty_BragCreateGetRoundTrip(t *testing.T) {
 		}
 
 		var createResp BragResponse
-		if err := unmarshalResult(createResult, &createResp); err != nil { t.Fatalf("unmarshal: %v", err) }
+		if err := unmarshalResult(createResult, &createResp); err != nil {
+			t.Fatalf("unmarshal: %v", err)
+		}
 
 		// Get
 		getResult, _, err := fx.server.handleBragGet(ctx, nil, BragGetParams{ID: bragID})
@@ -98,7 +100,9 @@ func TestProperty_BragCreateGetRoundTrip(t *testing.T) {
 		}
 
 		var getResp BragResponse
-		if err := unmarshalResult(getResult, &getResp); err != nil { t.Fatalf("unmarshal: %v", err) }
+		if err := unmarshalResult(getResult, &getResp); err != nil {
+			t.Fatalf("unmarshal: %v", err)
+		}
 
 		// Verify round-trip
 		if createResp.Title != getResp.Title {
@@ -181,7 +185,9 @@ func TestProperty_BragListInvariant(t *testing.T) {
 		}
 
 		var listResp []BragResponse
-		if err := unmarshalResult(listResult, &listResp); err != nil { t.Fatalf("unmarshal: %v", err) }
+		if err := unmarshalResult(listResult, &listResp); err != nil {
+			t.Fatalf("unmarshal: %v", err)
+		}
 
 		// Verify count
 		if len(listResp) != n {
@@ -272,7 +278,7 @@ func TestBragGet_NotFound(t *testing.T) {
 	ctx := context.Background()
 	fx := newTestServer()
 
-	fx.bragRepo.On("Select", mock.Anything, int64(999)).Return(nil, fmt.Errorf("brag not found"))
+	fx.bragRepo.On("Select", mock.Anything, int64(999)).Return(nil, domain.NotFoundError(fmt.Errorf("brag not found")))
 
 	result, _, err := fx.server.handleBragGet(ctx, nil, BragGetParams{ID: 999})
 	assert.NoError(t, err)
@@ -286,7 +292,7 @@ func TestBragUpdate_NotFound(t *testing.T) {
 	ctx := context.Background()
 	fx := newTestServer()
 
-	fx.bragRepo.On("Select", mock.Anything, int64(999)).Return(nil, fmt.Errorf("brag not found"))
+	fx.bragRepo.On("Select", mock.Anything, int64(999)).Return(nil, domain.NotFoundError(fmt.Errorf("brag not found")))
 
 	result, _, err := fx.server.handleBragUpdate(ctx, nil, BragUpdateParams{
 		ID:    999,
@@ -303,7 +309,7 @@ func TestBragDelete_NotFound(t *testing.T) {
 	ctx := context.Background()
 	fx := newTestServer()
 
-	fx.bragRepo.On("Delete", mock.Anything, int64(999)).Return(fmt.Errorf("brag not found"))
+	fx.bragRepo.On("Delete", mock.Anything, int64(999)).Return(domain.NotFoundError(fmt.Errorf("brag not found")))
 
 	result, _, err := fx.server.handleBragDelete(ctx, nil, BragDeleteParams{ID: 999})
 	assert.NoError(t, err)

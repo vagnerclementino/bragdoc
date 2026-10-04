@@ -31,7 +31,7 @@ func (r *sqliteBragRepository) Select(ctx context.Context, id int64) (*domain.Br
 	dbBrag, err := r.db.Queries().GetBrag(ctx, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("brag not found: %d", id)
+			return nil, domain.NotFoundError(fmt.Errorf("brag not found: %d", id))
 		}
 		return nil, fmt.Errorf("failed to get brag: %w", err)
 	}
@@ -180,7 +180,7 @@ func (r *sqliteBragRepository) toDomainBrag(ctx context.Context, dbBrag *queries
 	user, err := r.userRepo.Select(ctx, dbBrag.OwnerID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("owner not found for brag %d: %w", dbBrag.ID, err)
+			return nil, domain.NotFoundError(fmt.Errorf("owner not found for brag %d: %w", dbBrag.ID, err))
 		}
 		return nil, fmt.Errorf("failed to get owner: %w", err)
 	}

@@ -23,7 +23,7 @@ func (r *sqliteCategoryRepository) Get(ctx context.Context, id int64) (*domain.C
 	dbCategory, err := r.db.Queries().GetCategory(ctx, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("category not found: %d", id)
+			return nil, domain.NotFoundError(fmt.Errorf("category not found: %d", id))
 		}
 		return nil, fmt.Errorf("failed to get category: %w", err)
 	}
@@ -34,7 +34,7 @@ func (r *sqliteCategoryRepository) GetByName(ctx context.Context, name domain.Ca
 	dbCategory, err := r.db.Queries().GetCategoryByName(ctx, string(name))
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("category not found: %s: %w", name, sql.ErrNoRows)
+			return nil, domain.NotFoundError(fmt.Errorf("category not found: %s: %w", name, sql.ErrNoRows))
 		}
 		return nil, fmt.Errorf("failed to get category by name: %w", err)
 	}

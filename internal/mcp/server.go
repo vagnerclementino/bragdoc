@@ -37,6 +37,7 @@ func NewServer(
 		Name:    "bragdoc",
 		Version: version,
 	}, nil)
+	mcpServer.AddReceivingMiddleware(normalizeInputErrors)
 
 	s := &Server{
 		mcpServer:   mcpServer,
@@ -148,9 +149,3 @@ func (s *Server) registerTools() {
 		Description: "Get a user profile by email address",
 	}, s.handleUserGetByEmail)
 }
-
-
-
-
-
-

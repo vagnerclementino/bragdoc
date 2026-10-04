@@ -66,13 +66,13 @@ func (s *UserService) validateUser(user *domain.User) error {
 func (s *UserService) Create(ctx context.Context, user *domain.User) (*domain.User, error) {
 	// Validate user data
 	if err := s.validateUser(user); err != nil {
-		return nil, fmt.Errorf("validation failed: %w", err)
+		return nil, domain.ValidationError(fmt.Errorf("validation failed: %w", err))
 	}
 
 	// Check if email already exists
 	existing, err := s.repo.SelectByEmail(ctx, user.Email)
 	if err == nil && existing != nil {
-		return nil, fmt.Errorf("user with email %s already exists", user.Email)
+		return nil, domain.ValidationError(fmt.Errorf("user with email %s already exists", user.Email))
 	}
 
 	// Create user
@@ -102,7 +102,7 @@ func (s *UserService) List(ctx context.Context) ([]*domain.User, error) {
 // Update updates an existing user
 func (s *UserService) Update(ctx context.Context, user *domain.User) (*domain.User, error) {
 	if err := s.validateUser(user); err != nil {
-		return nil, fmt.Errorf("validation failed: %w", err)
+		return nil, domain.ValidationError(fmt.Errorf("validation failed: %w", err))
 	}
 
 	updated, err := s.repo.Update(ctx, user)

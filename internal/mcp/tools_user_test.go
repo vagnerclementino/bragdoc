@@ -80,7 +80,7 @@ func TestHandleUserGet_NotFound(t *testing.T) {
 	fix := newTestServer()
 	ctx := context.Background()
 
-	fix.userRepo.On("Select", mock.Anything, int64(999)).Return(nil, fmt.Errorf("user not found"))
+	fix.userRepo.On("Select", mock.Anything, int64(999)).Return(nil, domain.NotFoundError(fmt.Errorf("user not found")))
 
 	result, _, err := fix.server.handleUserGet(ctx, nil, UserGetParams{ID: 999})
 	assert.NoError(t, err)
@@ -92,7 +92,7 @@ func TestHandleUserGetByEmail_NotFound(t *testing.T) {
 	fix := newTestServer()
 	ctx := context.Background()
 
-	fix.userRepo.On("SelectByEmail", mock.Anything, "nobody@example.com").Return(nil, fmt.Errorf("user not found"))
+	fix.userRepo.On("SelectByEmail", mock.Anything, "nobody@example.com").Return(nil, domain.NotFoundError(fmt.Errorf("user not found")))
 
 	result, _, err := fix.server.handleUserGetByEmail(ctx, nil, UserGetByEmailParams{Email: "nobody@example.com"})
 	assert.NoError(t, err)

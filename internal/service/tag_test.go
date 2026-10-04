@@ -11,6 +11,26 @@ import (
 	"github.com/vagnerclementino/bragdoc/internal/domain"
 )
 
+func TestTagLookupFailureDoesNotCreate(t *testing.T) {
+	for _, operation := range []string{"create", "get-or-create"} {
+		t.Run(operation, func(t *testing.T) {
+			repo := new(MockTagRepository)
+			failure := errors.New("database connection failed")
+			repo.On("SelectByName", mock.Anything, int64(1), "golang").Return(nil, failure).Once()
+			tags := NewTagService(repo)
+			var err error
+			if operation == "create" {
+				_, err = tags.Create(context.Background(), &domain.Tag{OwnerID: 1, Name: "golang"})
+			} else {
+				_, err = tags.GetOrCreate(context.Background(), 1, "golang")
+			}
+			assert.ErrorIs(t, err, failure)
+			repo.AssertExpectations(t)
+			repo.AssertNotCalled(t, "Insert", mock.Anything, mock.Anything)
+		})
+	}
+}
+
 // MockTagRepository is a mock implementation of TagRepository
 type MockTagRepository struct {
 	mock.Mock
@@ -91,7 +111,7 @@ func TestTagService_Create_Success(t *testing.T) {
 		CreatedAt: time.Now(),
 	}
 
-	mockRepo.On("SelectByName", mock.Anything, int64(1), "golang").Return(nil, errors.New("not found"))
+	mockRepo.On("SelectByName", mock.Anything, int64(1), "golang").Return(nil, domain.NotFoundError(errors.New("not found")))
 	mockRepo.On("Insert", mock.Anything, tag).Return(expectedTag, nil)
 
 	// Act
@@ -259,7 +279,7 @@ func TestTagService_GetOrCreate_NewTag(t *testing.T) {
 		OwnerID: 1,
 	}
 
-	mockRepo.On("SelectByName", mock.Anything, int64(1), "python").Return(nil, errors.New("not found"))
+	mockRepo.On("SelectByName", mock.Anything, int64(1), "python").Return(nil, domain.NotFoundError(errors.New("not found")))
 	mockRepo.On("Insert", mock.Anything, mock.MatchedBy(func(tag *domain.Tag) bool {
 		return tag.Name == "python" && tag.OwnerID == 1
 	})).Return(newTag, nil)

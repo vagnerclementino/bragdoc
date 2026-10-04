@@ -24,7 +24,7 @@ func (r *sqliteTagRepository) Select(ctx context.Context, id int64) (*domain.Tag
 	dbTag, err := r.db.Queries().GetTag(ctx, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("tag not found: %d", id)
+			return nil, domain.NotFoundError(fmt.Errorf("tag not found: %d", id))
 		}
 		return nil, fmt.Errorf("failed to get tag: %w", err)
 	}
@@ -39,7 +39,7 @@ func (r *sqliteTagRepository) SelectByName(ctx context.Context, ownerID int64, n
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("tag not found: %s", name)
+			return nil, domain.NotFoundError(fmt.Errorf("tag not found: %s", name))
 		}
 		return nil, fmt.Errorf("failed to get tag by name: %w", err)
 	}

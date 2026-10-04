@@ -87,7 +87,7 @@ func TestUserService_Create_Success(t *testing.T) {
 		CreatedAt: time.Now(),
 	}
 
-	mockRepo.On("SelectByEmail", mock.Anything, "john.doe@example.com").Return(nil, errors.New("not found"))
+	mockRepo.On("SelectByEmail", mock.Anything, "john.doe@example.com").Return(nil, domain.NotFoundError(errors.New("not found")))
 	mockRepo.On("Insert", mock.Anything, user).Return(expectedUser, nil)
 
 	// Act
@@ -289,7 +289,7 @@ func TestUserService_Create_DefaultLocale(t *testing.T) {
 		Locale: domain.LocaleEnglishUS,
 	}
 
-	mockRepo.On("SelectByEmail", mock.Anything, "john@example.com").Return(nil, errors.New("not found"))
+	mockRepo.On("SelectByEmail", mock.Anything, "john@example.com").Return(nil, domain.NotFoundError(errors.New("not found")))
 	mockRepo.On("Insert", mock.Anything, mock.MatchedBy(func(u *domain.User) bool {
 		return u.Locale == domain.LocaleEnglishUS
 	})).Return(expectedUser, nil)

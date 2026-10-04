@@ -47,13 +47,16 @@ func (s *TagService) validateTag(tag *domain.Tag) error {
 // Create creates a new tag with validation
 func (s *TagService) Create(ctx context.Context, tag *domain.Tag) (*domain.Tag, error) {
 	if err := s.validateTag(tag); err != nil {
-		return nil, fmt.Errorf("validation failed: %w", err)
+		return nil, domain.ValidationError(fmt.Errorf("validation failed: %w", err))
 	}
 
 	// Check if tag already exists for this user
 	existing, err := s.repo.SelectByName(ctx, tag.OwnerID, tag.Name)
+	if err != nil && !errors.Is(err, domain.ErrNotFound) {
+		return nil, fmt.Errorf("failed to look up tag: %w", err)
+	}
 	if err == nil && existing != nil {
-		return nil, fmt.Errorf("tag '%s' already exists for this user", tag.Name)
+		return nil, domain.ValidationError(fmt.Errorf("tag '%s' already exists for this user", tag.Name))
 	}
 
 	created, err := s.repo.Insert(ctx, tag)
@@ -87,7 +90,7 @@ func (s *TagService) ListByBrag(ctx context.Context, bragID int64) ([]*domain.Ta
 // AttachToBrag attaches tags to a brag
 func (s *TagService) AttachToBrag(ctx context.Context, bragID int64, tagIDs []int64) error {
 	if len(tagIDs) == 0 {
-		return fmt.Errorf("at least one tag ID is required")
+		return domain.ValidationError(fmt.Errorf("at least one tag ID is required"))
 	}
 	return s.repo.AttachToBrag(ctx, bragID, tagIDs)
 }
@@ -95,7 +98,7 @@ func (s *TagService) AttachToBrag(ctx context.Context, bragID int64, tagIDs []in
 // DetachFromBrag detaches tags from a brag
 func (s *TagService) DetachFromBrag(ctx context.Context, bragID int64, tagIDs []int64) error {
 	if len(tagIDs) == 0 {
-		return fmt.Errorf("at least one tag ID is required")
+		return domain.ValidationError(fmt.Errorf("at least one tag ID is required"))
 	}
 	return s.repo.DetachFromBrag(ctx, bragID, tagIDs)
 }
@@ -109,6 +112,9 @@ func (s *TagService) Delete(ctx context.Context, id int64) error {
 func (s *TagService) GetOrCreate(ctx context.Context, ownerID int64, name string) (*domain.Tag, error) {
 	// Try to get existing tag
 	existing, err := s.repo.SelectByName(ctx, ownerID, name)
+	if err != nil && !errors.Is(err, domain.ErrNotFound) {
+		return nil, fmt.Errorf("failed to look up tag: %w", err)
+	}
 	if err == nil && existing != nil {
 		return existing, nil
 	}

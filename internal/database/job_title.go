@@ -24,7 +24,7 @@ func (r *sqliteJobTitleRepository) Get(ctx context.Context, id int64) (*domain.J
 	dbJobTitle, err := r.db.Queries().GetJobTitle(ctx, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("job title not found: %d", id)
+			return nil, domain.NotFoundError(fmt.Errorf("job title not found: %d", id))
 		}
 		return nil, fmt.Errorf("failed to get job title: %w", err)
 	}
@@ -35,7 +35,7 @@ func (r *sqliteJobTitleRepository) GetActive(ctx context.Context, userID int64) 
 	dbJobTitle, err := r.db.Queries().GetActiveJobTitle(ctx, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("no active job title found for user %d", userID)
+			return nil, domain.NotFoundError(fmt.Errorf("no active job title found for user %d", userID))
 		}
 		return nil, fmt.Errorf("failed to get active job title: %w", err)
 	}
@@ -49,7 +49,7 @@ func (r *sqliteJobTitleRepository) GetByName(ctx context.Context, userID int64, 
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("job title '%s' not found for user %d", title, userID)
+			return nil, domain.NotFoundError(fmt.Errorf("job title '%s' not found for user %d", title, userID))
 		}
 		return nil, fmt.Errorf("failed to get job title by name: %w", err)
 	}
@@ -172,7 +172,7 @@ func (r *sqliteJobTitleRepository) toDomainJobTitle(ctx context.Context, dbJobTi
 	user, err := r.userRepo.Select(ctx, dbJobTitle.UserID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("user not found for job title %d: %w", dbJobTitle.ID, err)
+			return nil, domain.NotFoundError(fmt.Errorf("user not found for job title %d: %w", dbJobTitle.ID, err))
 		}
 		return nil, fmt.Errorf("failed to get user: %w", err)
 	}

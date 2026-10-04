@@ -46,7 +46,7 @@ func TestProperty_TagCreateListRoundTrip(t *testing.T) {
 			createdTags = append(createdTags, tag)
 
 			// Mock SelectByName to return nil (tag doesn't exist yet)
-			fx.tagRepo.On("SelectByName", mock.Anything, ownerID, name).Return(nil, fmt.Errorf("not found")).Once()
+			fx.tagRepo.On("SelectByName", mock.Anything, ownerID, name).Return(nil, domain.NotFoundError(fmt.Errorf("not found"))).Once()
 			// Mock Insert
 			fx.tagRepo.On("Insert", mock.Anything, mock.MatchedBy(func(t *domain.Tag) bool {
 				return t.Name == name && t.OwnerID == ownerID
@@ -80,7 +80,9 @@ func TestProperty_TagCreateListRoundTrip(t *testing.T) {
 		}
 
 		var listResp []TagResponse
-		if err := unmarshalResult(listResult, &listResp); err != nil { t.Fatalf("unmarshal: %v", err) }
+		if err := unmarshalResult(listResult, &listResp); err != nil {
+			t.Fatalf("unmarshal: %v", err)
+		}
 
 		if len(listResp) != n {
 			t.Fatalf("expected %d tags, got %d", n, len(listResp))
@@ -107,7 +109,7 @@ func TestProperty_DuplicateTagNameError(t *testing.T) {
 		}
 
 		// First create: tag doesn't exist, then insert succeeds
-		fx.tagRepo.On("SelectByName", mock.Anything, ownerID, name).Return(nil, fmt.Errorf("not found")).Once()
+		fx.tagRepo.On("SelectByName", mock.Anything, ownerID, name).Return(nil, domain.NotFoundError(fmt.Errorf("not found"))).Once()
 		fx.tagRepo.On("Insert", mock.Anything, mock.MatchedBy(func(t *domain.Tag) bool {
 			return t.Name == name
 		})).Return(existingTag, nil).Once()
@@ -166,7 +168,7 @@ func TestProperty_TagGetOrCreateIdempotence(t *testing.T) {
 		}
 
 		// First call: GetOrCreate calls SelectByName (not found), then Create also calls SelectByName (not found), then Insert
-		fx.tagRepo.On("SelectByName", mock.Anything, ownerID, name).Return(nil, fmt.Errorf("not found")).Times(2)
+		fx.tagRepo.On("SelectByName", mock.Anything, ownerID, name).Return(nil, domain.NotFoundError(fmt.Errorf("not found"))).Times(2)
 		fx.tagRepo.On("Insert", mock.Anything, mock.MatchedBy(func(t *domain.Tag) bool {
 			return t.Name == name
 		})).Return(existingTag, nil).Once()
@@ -183,7 +185,9 @@ func TestProperty_TagGetOrCreateIdempotence(t *testing.T) {
 		}
 
 		var resp1 TagResponse
-		if err := unmarshalResult(result1, &resp1); err != nil { t.Fatalf("unmarshal: %v", err) }
+		if err := unmarshalResult(result1, &resp1); err != nil {
+			t.Fatalf("unmarshal: %v", err)
+		}
 
 		// Second call: tag now exists → SelectByName returns the tag
 		fx.tagRepo.ExpectedCalls = nil // Reset mock expectations for clean second call
@@ -201,7 +205,9 @@ func TestProperty_TagGetOrCreateIdempotence(t *testing.T) {
 		}
 
 		var resp2 TagResponse
-		if err := unmarshalResult(result2, &resp2); err != nil { t.Fatalf("unmarshal: %v", err) }
+		if err := unmarshalResult(result2, &resp2); err != nil {
+			t.Fatalf("unmarshal: %v", err)
+		}
 
 		// Same ID both times
 		if resp1.ID != resp2.ID {
