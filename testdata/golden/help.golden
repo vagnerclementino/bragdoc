@@ -10,6 +10,7 @@ Available Commands:
   doc         Generate brag documents
   help        Help about any command
   init        Initialize Bragdoc configuration and database
+  mcp         Serve MCP tools over stdin/stdout
   tag         Manage tags for organizing brags
   version     Print the version number of Bragdoc
 

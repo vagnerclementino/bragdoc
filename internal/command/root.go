@@ -33,6 +33,7 @@ build their own "Brag Documents" to track and showcase their professional achiev
 		NewInitCmd(),
 		NewVersionCmd(),
 		NewDoctorCmd(), // Hidden command for debugging
+		NewMCPCmd(bragService, userService, tagService, jobTitleService, docService),
 	)
 
 	return rootCmd

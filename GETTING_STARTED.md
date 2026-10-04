@@ -493,9 +493,9 @@ Bragdoc can run as an [MCP (Model Context Protocol)](https://modelcontextprotoco
 
 ### Setup
 
-1. Build the MCP binary:
+1. Install Bragdoc normally, or build the single binary:
    ```bash
-   make build-mcp
+   make build
    ```
 
 2. Initialize bragdoc (if not already done):
@@ -508,8 +508,8 @@ Bragdoc can run as an [MCP (Model Context Protocol)](https://modelcontextprotoco
    {
      "mcpServers": {
        "bragdoc": {
-         "command": "/absolute/path/to/bragdoc-mcp",
-         "args": []
+         "command": "/absolute/path/to/bragdoc",
+         "args": ["mcp"]
        }
      }
    }
@@ -526,7 +526,7 @@ Once connected, your AI assistant can:
 - Generate documents: *"Generate my brag document for this quarter"*
 - Manage tags: *"Create a tag called 'performance'"*
 
-The MCP server exposes 17 tools covering all bragdoc operations (brags, tags, documents, users).
+The MCP server exposes 17 tools for brags, tags, document generation, and user lookup. The IDE launches `bragdoc mcp`; no separate server binary is needed.
 
 ## Getting Help
 

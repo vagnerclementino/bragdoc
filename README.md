@@ -94,13 +94,13 @@ For detailed instructions, see the [Getting Started Guide](GETTING_STARTED.md).
 
 Bragdoc can run as an [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server, allowing AI agents in compatible IDEs to manage your achievements through natural language.
 
-### Building the MCP Server
+### Starting the MCP Server
 
 ```bash
-make build-mcp
+bragdoc mcp
 ```
 
-This produces a `bragdoc-mcp` binary that communicates over stdio using JSON-RPC 2.0.
+The same `bragdoc` binary serves MCP requests over stdio using JSON-RPC 2.0. Your IDE launches `bragdoc mcp` and keeps it running until it disconnects. Install Bragdoc normally, or build it with `make build`.
 
 ### Configuring in Your IDE
 
@@ -111,19 +111,20 @@ Add the following to your IDE's MCP configuration:
 {
   "mcpServers": {
     "bragdoc": {
-      "command": "/path/to/bragdoc-mcp",
-      "args": []
+      "command": "/absolute/path/to/bragdoc",
+      "args": ["mcp"]
     }
   }
 }
 ```
 
-**VS Code / Cursor** (`.vscode/mcp.json` or equivalent):
+**Cursor** (MCP configuration):
 ```json
 {
   "mcpServers": {
     "bragdoc": {
-      "command": "/path/to/bragdoc-mcp"
+      "command": "/absolute/path/to/bragdoc",
+      "args": ["mcp"]
     }
   }
 }
@@ -167,7 +168,6 @@ For detailed information about all Make targets, workflows, and best practices, 
 
 #### Application Targets
 - `make build` - Build the application binary
-- `make build-mcp` - Build the MCP server binary (`bragdoc-mcp`)
 - `make run` - Build and run the application
 - `make clean` - Clean binary and artifacts
 - `make install` - Install to /usr/local/bin (requires sudo)
