@@ -21,10 +21,10 @@ func NewTagRepository(db *SQLiteDB) repository.TagRepository {
 }
 
 func (r *sqliteTagRepository) Select(ctx context.Context, id int64) (*domain.Tag, error) {
-	dbTag, err := r.db.Queries().GetTag(ctx, id)
+	dbTag, err := r.db.Queries(ctx).GetTag(ctx, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("tag not found: %d", id)
+			return nil, domain.NotFoundError(fmt.Errorf("tag not found: %d", id))
 		}
 		return nil, fmt.Errorf("failed to get tag: %w", err)
 	}
@@ -33,13 +33,13 @@ func (r *sqliteTagRepository) Select(ctx context.Context, id int64) (*domain.Tag
 }
 
 func (r *sqliteTagRepository) SelectByName(ctx context.Context, ownerID int64, name string) (*domain.Tag, error) {
-	dbTag, err := r.db.Queries().GetTagByName(ctx, queries.GetTagByNameParams{
+	dbTag, err := r.db.Queries(ctx).GetTagByName(ctx, queries.GetTagByNameParams{
 		OwnerID: ownerID,
 		Name:    name,
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("tag not found: %s", name)
+			return nil, domain.NotFoundError(fmt.Errorf("tag not found: %s", name))
 		}
 		return nil, fmt.Errorf("failed to get tag by name: %w", err)
 	}
@@ -48,7 +48,7 @@ func (r *sqliteTagRepository) SelectByName(ctx context.Context, ownerID int64, n
 }
 
 func (r *sqliteTagRepository) SelectAll(ctx context.Context, ownerID int64) ([]*domain.Tag, error) {
-	dbTags, err := r.db.Queries().ListTagsByUser(ctx, ownerID)
+	dbTags, err := r.db.Queries(ctx).ListTagsByUser(ctx, ownerID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list tags: %w", err)
 	}
@@ -62,7 +62,7 @@ func (r *sqliteTagRepository) SelectAll(ctx context.Context, ownerID int64) ([]*
 }
 
 func (r *sqliteTagRepository) SelectByBrag(ctx context.Context, bragID int64) ([]*domain.Tag, error) {
-	dbTags, err := r.db.Queries().ListTagsByBrag(ctx, bragID)
+	dbTags, err := r.db.Queries(ctx).ListTagsByBrag(ctx, bragID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list tags by brag: %w", err)
 	}
@@ -76,7 +76,7 @@ func (r *sqliteTagRepository) SelectByBrag(ctx context.Context, bragID int64) ([
 }
 
 func (r *sqliteTagRepository) Insert(ctx context.Context, tag *domain.Tag) (*domain.Tag, error) {
-	dbTag, err := r.db.Queries().CreateTag(ctx, queries.CreateTagParams{
+	dbTag, err := r.db.Queries(ctx).CreateTag(ctx, queries.CreateTagParams{
 		Name:    tag.Name,
 		OwnerID: tag.OwnerID,
 	})
@@ -88,11 +88,11 @@ func (r *sqliteTagRepository) Insert(ctx context.Context, tag *domain.Tag) (*dom
 }
 
 func (r *sqliteTagRepository) Delete(ctx context.Context, id int64) error {
-	if err := r.db.Queries().DetachTagFromAllBrags(ctx, id); err != nil {
+	if err := r.db.Queries(ctx).DetachTagFromAllBrags(ctx, id); err != nil {
 		return fmt.Errorf("failed to detach tag from brags: %w", err)
 	}
 
-	if err := r.db.Queries().DeleteTag(ctx, id); err != nil {
+	if err := r.db.Queries(ctx).DeleteTag(ctx, id); err != nil {
 		return fmt.Errorf("failed to delete tag: %w", err)
 	}
 
@@ -101,7 +101,7 @@ func (r *sqliteTagRepository) Delete(ctx context.Context, id int64) error {
 
 func (r *sqliteTagRepository) AttachToBrag(ctx context.Context, bragID int64, tagIDs []int64) error {
 	for _, tagID := range tagIDs {
-		if err := r.db.Queries().AttachTagToBrag(ctx, queries.AttachTagToBragParams{
+		if err := r.db.Queries(ctx).AttachTagToBrag(ctx, queries.AttachTagToBragParams{
 			BragID: bragID,
 			TagID:  tagID,
 		}); err != nil {
@@ -113,7 +113,7 @@ func (r *sqliteTagRepository) AttachToBrag(ctx context.Context, bragID int64, ta
 
 func (r *sqliteTagRepository) DetachFromBrag(ctx context.Context, bragID int64, tagIDs []int64) error {
 	for _, tagID := range tagIDs {
-		if err := r.db.Queries().DetachTagFromBrag(ctx, queries.DetachTagFromBragParams{
+		if err := r.db.Queries(ctx).DetachTagFromBrag(ctx, queries.DetachTagFromBragParams{
 			BragID: bragID,
 			TagID:  tagID,
 		}); err != nil {

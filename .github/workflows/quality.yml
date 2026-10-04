@@ -22,7 +22,7 @@ jobs:
       - uses: actions/setup-go@v6
         name: setup-go
         with:
-          go-version: '1.24'
+          go-version: '1.25'
 
       - name: Check go mod
         run: |
@@ -32,6 +32,7 @@ jobs:
       - name: lint
         uses: golangci/golangci-lint-action@v9
         with:
+          install-mode: goinstall
           version: v2.1.6
           args: --issues-exit-code=0 --timeout 3m0s
           only-new-issues: true

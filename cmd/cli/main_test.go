@@ -77,9 +77,23 @@ func TestMain(m *testing.M) {
 // Use stdout for golden file comparisons and success assertions.
 // Use stderr for error message assertions (cobra writes errors to stderr).
 func runBinary(args []string, env map[string]string) (stdout, stderr []byte, err error) {
+	// Keep subprocesses away from the developer's real configuration and database.
+	dataHome := env[config.BragdocHomeEnv]
+	if dataHome == "" {
+		if home := env["HOME"]; home != "" {
+			dataHome = filepath.Join(home, ".bragdoc")
+		} else {
+			dataHome, err = os.MkdirTemp("", "bragdoc-cli-test-")
+			if err != nil {
+				return nil, nil, err
+			}
+			defer os.RemoveAll(dataHome) //nolint:errcheck // Temporary test data only.
+		}
+	}
 	ctx := context.Background()
 	cmd := exec.CommandContext(ctx, binaryPath, args...)
 	cmd.Env = append(os.Environ(), "GOCOVERDIR=.coverdata")
+	cmd.Env = append(cmd.Env, config.BragdocHomeEnv+"="+dataHome)
 
 	for k, v := range env {
 		cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", k, v))
@@ -212,6 +226,13 @@ func TestGetDatabasePath_UsesDefaultWhenEmpty(t *testing.T) {
 }
 
 // Integration tests
+func TestMCPRequiresInit(t *testing.T) {
+	stdout, stderr, err := runBinary([]string{"mcp"}, map[string]string{config.BragdocHomeEnv: t.TempDir()})
+	assert.Error(t, err)
+	assert.Empty(t, stdout, "MCP startup failures must not write CLI output to stdout")
+	assert.Contains(t, string(stderr), "Please run 'bragdoc init' first")
+}
+
 func TestCLIVersion(t *testing.T) {
 	stdout, _, err := runBinary([]string{"version"}, nil)
 	if err != nil {

@@ -21,10 +21,10 @@ func NewUserRepository(db *SQLiteDB) repository.UserRepository {
 }
 
 func (r *sqliteUserRepository) Select(ctx context.Context, id int64) (*domain.User, error) {
-	dbUser, err := r.db.Queries().GetUser(ctx, id)
+	dbUser, err := r.db.Queries(ctx).GetUser(ctx, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("user not found: %d: %w", id, sql.ErrNoRows)
+			return nil, domain.NotFoundError(fmt.Errorf("user not found: %d: %w", id, sql.ErrNoRows))
 		}
 		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
@@ -33,10 +33,10 @@ func (r *sqliteUserRepository) Select(ctx context.Context, id int64) (*domain.Us
 }
 
 func (r *sqliteUserRepository) SelectByEmail(ctx context.Context, email string) (*domain.User, error) {
-	dbUser, err := r.db.Queries().GetUserByEmail(ctx, email)
+	dbUser, err := r.db.Queries(ctx).GetUserByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("user not found: %s: %w", email, sql.ErrNoRows)
+			return nil, domain.NotFoundError(fmt.Errorf("user not found: %s: %w", email, sql.ErrNoRows))
 		}
 		return nil, fmt.Errorf("failed to get user by email: %w", err)
 	}
@@ -45,7 +45,7 @@ func (r *sqliteUserRepository) SelectByEmail(ctx context.Context, email string) 
 }
 
 func (r *sqliteUserRepository) SelectAll(ctx context.Context) ([]*domain.User, error) {
-	dbUsers, err := r.db.Queries().ListUsers(ctx)
+	dbUsers, err := r.db.Queries(ctx).ListUsers(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list users: %w", err)
 	}
@@ -62,7 +62,7 @@ func (r *sqliteUserRepository) Insert(ctx context.Context, user *domain.User) (*
 	jobTitle := sql.NullString{String: user.JobTitle, Valid: user.JobTitle != ""}
 	company := sql.NullString{String: user.Company, Valid: user.Company != ""}
 
-	dbUser, err := r.db.Queries().CreateUser(ctx, queries.CreateUserParams{
+	dbUser, err := r.db.Queries(ctx).CreateUser(ctx, queries.CreateUserParams{
 		Name:     user.Name,
 		Email:    user.Email,
 		JobTitle: jobTitle,
@@ -80,7 +80,7 @@ func (r *sqliteUserRepository) Update(ctx context.Context, user *domain.User) (*
 	jobTitle := sql.NullString{String: user.JobTitle, Valid: user.JobTitle != ""}
 	company := sql.NullString{String: user.Company, Valid: user.Company != ""}
 
-	dbUser, err := r.db.Queries().UpdateUser(ctx, queries.UpdateUserParams{
+	dbUser, err := r.db.Queries(ctx).UpdateUser(ctx, queries.UpdateUserParams{
 		Name:     user.Name,
 		Email:    user.Email,
 		JobTitle: jobTitle,
@@ -96,7 +96,7 @@ func (r *sqliteUserRepository) Update(ctx context.Context, user *domain.User) (*
 }
 
 func (r *sqliteUserRepository) Delete(ctx context.Context, id int64) error {
-	if err := r.db.Queries().DeleteUser(ctx, id); err != nil {
+	if err := r.db.Queries(ctx).DeleteUser(ctx, id); err != nil {
 		return fmt.Errorf("failed to delete user: %w", err)
 	}
 	return nil

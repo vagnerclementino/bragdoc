@@ -20,10 +20,10 @@ func NewCategoryRepository(db *SQLiteDB) repository.CategoryRepository {
 }
 
 func (r *sqliteCategoryRepository) Get(ctx context.Context, id int64) (*domain.Category, error) {
-	dbCategory, err := r.db.Queries().GetCategory(ctx, id)
+	dbCategory, err := r.db.Queries(ctx).GetCategory(ctx, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("category not found: %d", id)
+			return nil, domain.NotFoundError(fmt.Errorf("category not found: %d", id))
 		}
 		return nil, fmt.Errorf("failed to get category: %w", err)
 	}
@@ -31,10 +31,10 @@ func (r *sqliteCategoryRepository) Get(ctx context.Context, id int64) (*domain.C
 }
 
 func (r *sqliteCategoryRepository) GetByName(ctx context.Context, name domain.CategoryName) (*domain.Category, error) {
-	dbCategory, err := r.db.Queries().GetCategoryByName(ctx, string(name))
+	dbCategory, err := r.db.Queries(ctx).GetCategoryByName(ctx, string(name))
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("category not found: %s: %w", name, sql.ErrNoRows)
+			return nil, domain.NotFoundError(fmt.Errorf("category not found: %s: %w", name, sql.ErrNoRows))
 		}
 		return nil, fmt.Errorf("failed to get category by name: %w", err)
 	}
@@ -42,7 +42,7 @@ func (r *sqliteCategoryRepository) GetByName(ctx context.Context, name domain.Ca
 }
 
 func (r *sqliteCategoryRepository) List(ctx context.Context) ([]*domain.Category, error) {
-	dbCategories, err := r.db.Queries().ListCategories(ctx)
+	dbCategories, err := r.db.Queries(ctx).ListCategories(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list categories: %w", err)
 	}
@@ -59,7 +59,7 @@ func (r *sqliteCategoryRepository) Create(ctx context.Context, category *domain.
 		return nil, fmt.Errorf("invalid category: %w", err)
 	}
 
-	dbCategory, err := r.db.Queries().CreateCategory(ctx, queries.CreateCategoryParams{
+	dbCategory, err := r.db.Queries(ctx).CreateCategory(ctx, queries.CreateCategoryParams{
 		Name:        string(category.Name),
 		Description: sql.NullString{String: category.Description, Valid: category.Description != ""},
 	})
@@ -74,7 +74,7 @@ func (r *sqliteCategoryRepository) Update(ctx context.Context, category *domain.
 		return nil, fmt.Errorf("invalid category: %w", err)
 	}
 
-	dbCategory, err := r.db.Queries().UpdateCategory(ctx, queries.UpdateCategoryParams{
+	dbCategory, err := r.db.Queries(ctx).UpdateCategory(ctx, queries.UpdateCategoryParams{
 		Name:        string(category.Name),
 		Description: sql.NullString{String: category.Description, Valid: category.Description != ""},
 		ID:          category.ID,
@@ -87,7 +87,7 @@ func (r *sqliteCategoryRepository) Update(ctx context.Context, category *domain.
 
 func (r *sqliteCategoryRepository) Delete(ctx context.Context, id int64) error {
 	// Check if category is in use
-	count, err := r.db.Queries().CountBragsByCategory(ctx, id)
+	count, err := r.db.Queries(ctx).CountBragsByCategory(ctx, id)
 	if err != nil {
 		return fmt.Errorf("failed to check category usage: %w", err)
 	}
@@ -95,7 +95,7 @@ func (r *sqliteCategoryRepository) Delete(ctx context.Context, id int64) error {
 		return fmt.Errorf("cannot delete category %d: %d brags use it", id, count)
 	}
 
-	if err := r.db.Queries().DeleteCategory(ctx, id); err != nil {
+	if err := r.db.Queries(ctx).DeleteCategory(ctx, id); err != nil {
 		return fmt.Errorf("failed to delete category: %w", err)
 	}
 	return nil

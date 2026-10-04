@@ -5,8 +5,10 @@ import (
 	"context"
 	"log"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
+	"syscall"
 
 	"github.com/vagnerclementino/bragdoc/config"
 	"github.com/vagnerclementino/bragdoc/internal/command"
@@ -15,11 +17,13 @@ import (
 )
 
 func main() {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 	cfg, err := loadConfig()
 	if err != nil {
 		// If config doesn't exist, let commands handle it (e.g., init command)
-		rootCmd := command.NewRootCmd(nil, nil, nil, nil, nil)
-		if err := rootCmd.Execute(); err != nil {
+		rootCmd := command.NewRootCmd(nil, nil, nil, nil, nil, nil)
+		if err := rootCmd.ExecuteContext(ctx); err != nil {
 			os.Exit(1)
 		}
 		return
@@ -38,7 +42,6 @@ func main() {
 	}(db)
 
 	// Run migrations automatically
-	ctx := context.Background()
 	if err := db.Migrate(ctx); err != nil {
 		log.Fatalf("failed to run migrations: %v", err)
 	}
@@ -60,8 +63,8 @@ func main() {
 	docService := service.NewDocumentService(userService)
 
 	// Create root command with dependencies
-	rootCmd := command.NewRootCmd(bragService, userService, tagService, jobTitleService, docService)
-	if err := rootCmd.Execute(); err != nil {
+	rootCmd := command.NewRootCmd(bragService, userService, tagService, jobTitleService, docService, sqliteDB)
+	if err := rootCmd.ExecuteContext(ctx); err != nil {
 		os.Exit(1)
 	}
 }

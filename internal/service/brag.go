@@ -58,7 +58,7 @@ func (s *BragService) validateBrag(brag *domain.Brag) error {
 
 func (s *BragService) Create(ctx context.Context, brag *domain.Brag) (*domain.Brag, error) {
 	if err := s.validateBrag(brag); err != nil {
-		return nil, fmt.Errorf("validation failed: %w", err)
+		return nil, domain.ValidationError(fmt.Errorf("validation failed: %w", err))
 	}
 
 	created, err := s.repo.Insert(ctx, brag)
@@ -79,7 +79,7 @@ func (s *BragService) List(ctx context.Context, userID int64) ([]*domain.Brag, e
 
 func (s *BragService) SearchByTags(ctx context.Context, userID int64, tagNames []string) ([]*domain.Brag, error) {
 	if len(tagNames) == 0 {
-		return nil, fmt.Errorf("at least one tag name is required")
+		return nil, domain.ValidationError(fmt.Errorf("at least one tag name is required"))
 	}
 	return s.repo.SelectByTags(ctx, userID, tagNames)
 }
@@ -90,7 +90,7 @@ func (s *BragService) SearchByCategory(ctx context.Context, userID int64, catego
 
 func (s *BragService) Update(ctx context.Context, brag *domain.Brag) (*domain.Brag, error) {
 	if err := s.validateBrag(brag); err != nil {
-		return nil, fmt.Errorf("validation failed: %w", err)
+		return nil, domain.ValidationError(fmt.Errorf("validation failed: %w", err))
 	}
 
 	updated, err := s.repo.Update(ctx, brag)
